@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<title>Vocab Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --nc:#00f5ff;--ng:#39ff14;--np:#ff2d78;--ny:#ffea00;--nu:#bf00ff;
+  --b0:#050510;--b1:#0a0a1e;--b2:#0f0f2a;
+  --bg:rgba(0,245,255,0.22);--tm:#e0eaff;--td:#5a6a8a;
+}
+*{box-sizing:border-box;margin:0;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;}
+button:focus{outline:none;}
+@media(hover:none){button:focus,button:active{outline:none;}}
+html,body{height:100%;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--b0);color:var(--tm);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,245,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.04) 1px,transparent 1px);
+  background-size:40px 40px;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,245,255,0.07) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 100%,rgba(191,0,255,0.07) 0%,transparent 50%);}
+.screen{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 80px;}
+.hidden{display:none!important;}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(1.4rem,5vw,2.2rem);letter-spacing:0.05em;text-align:center;margin-bottom:4px;color:var(--nc);text-shadow:0 0 20px var(--nc),0 0 60px rgba(0,245,255,0.3);line-height:1.1;}
+.logo-sub{font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.3em;color:var(--nu);text-align:center;text-shadow:0 0 12px var(--nu);margin-bottom:20px;}
+.panel{background:var(--b2);border:1px solid var(--bg);border-radius:16px;box-shadow:0 0 30px rgba(0,245,255,0.05),inset 0 1px 0 rgba(255,255,255,0.04);padding:18px;width:100%;max-width:500px;}
+.panel+.panel{margin-top:12px;}
+.ptitle{font-family:'Orbitron',monospace;font-size:0.68rem;letter-spacing:0.2em;color:var(--nc);text-align:center;margin-bottom:14px;text-shadow:0 0 10px var(--nc);}
+.subj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.subj-btn{background:var(--b1);border:1px solid rgba(0,245,255,0.2);border-radius:12px;color:var(--tm);padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans JP',sans-serif;font-size:0.78rem;font-weight:700;}
+@media(hover:hover){.subj-btn:hover{border-color:var(--nc);background:rgba(0,245,255,0.06);box-shadow:0 0 16px rgba(0,245,255,0.14);}}
+.subj-icon{font-size:1.7rem;}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;max-height:40vh;overflow-y:auto;padding-right:4px;margin-bottom:12px;}
+.cat-grid::-webkit-scrollbar{width:3px;}
+.cat-grid::-webkit-scrollbar-thumb{background:var(--nc);border-radius:2px;}
+.cat-btn{background:var(--b1);border:1px solid rgba(0,245,255,0.12);border-radius:8px;color:var(--td);padding:9px 8px;font-size:0.7rem;font-family:'Noto Sans JP',sans-serif;font-weight:500;cursor:pointer;text-align:center;transition:all 0.18s;line-height:1.3;}
+@media(hover:hover){.cat-btn:hover{border-color:rgba(0,245,255,0.35);color:var(--tm);}}
+.cat-btn.sel{border-color:var(--nc);color:var(--nc);background:rgba(0,245,255,0.08);box-shadow:0 0 8px rgba(0,245,255,0.1);}
+.sel-badge{font-family:'Orbitron',monospace;font-size:0.65rem;color:var(--td);text-align:center;margin-bottom:10px;letter-spacing:0.1em;}
+.sel-badge span{color:var(--nc);text-shadow:0 0 8px var(--nc);}
+.nbtn{border:none;border-radius:10px;font-family:'Orbitron',monospace;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;}
+.nbtn:disabled{opacity:0.28;cursor:not-allowed;}
+.nbtn.cy{background:var(--nc);color:#000;box-shadow:0 0 20px rgba(0,245,255,0.4);}
+@media(hover:hover){.nbtn.cy:not(:disabled):hover{box-shadow:0 0 36px rgba(0,245,255,0.7);transform:translateY(-1px);}}
+.nbtn.pu{background:var(--nu);color:#fff;box-shadow:0 0 20px rgba(191,0,255,0.4);}
+@media(hover:hover){.nbtn.pu:not(:disabled):hover{box-shadow:0 0 36px rgba(191,0,255,0.7);transform:translateY(-1px);}}
+.nbtn.ye{background:var(--ny);color:#000;box-shadow:0 0 20px rgba(255,234,0,0.4);}
+.nbtn.gn{background:var(--ng);color:#000;box-shadow:0 0 20px rgba(57,255,20,0.4);}
+.nbtn.pk{background:var(--np);color:#fff;box-shadow:0 0 20px rgba(255,45,120,0.4);}
+.back-btn{background:none;border:1px solid var(--td);border-radius:8px;color:var(--td);padding:8px 20px;font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans JP',sans-serif;margin-top:10px;}
+@media(hover:hover){.back-btn:hover{border-color:var(--nc);color:var(--nc);}}
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;}
+.mode-btn{background:var(--b1);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--td);padding:9px;font-size:0.72rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.mode-btn.active{border-color:var(--nc);color:var(--nc);background:rgba(0,245,255,0.06);}
+.mode-desc{font-size:0.66rem;color:var(--td);text-align:center;margin-bottom:12px;}
+.dir-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;}
+.dir-btn{background:var(--b1);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--td);padding:12px 8px;font-size:0.7rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.5;}
+.dir-btn.active{border-color:var(--ny);color:var(--ny);background:rgba(255,234,0,0.06);box-shadow:0 0 10px rgba(255,234,0,0.15);}
+.tsbox{background:var(--b1);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:14px;}
+.tstitle{font-family:'Orbitron',monospace;font-size:0.58rem;letter-spacing:0.2em;color:var(--td);text-align:center;margin-bottom:12px;}
+.tsrow{display:grid;grid-template-columns:1fr 1px 1fr;align-items:center;}
+.tsdiv{background:rgba(255,255,255,0.05);height:56px;}
+.tsitem{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.tslbl{font-size:0.66rem;color:var(--td);}
+.tsstep{display:flex;align-items:center;gap:6px;}
+.tsbtngroup{display:flex;flex-direction:column;gap:3px;}
+.tsbtn{background:var(--b2);border:1px solid rgba(255,255,255,0.1);border-radius:5px;color:var(--tm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:'Orbitron',monospace;}
+@media(hover:hover){.tsbtn:hover{border-color:var(--nc);color:var(--nc);}}
+.tsbtn.big{width:34px;height:26px;font-size:0.72rem;}
+.tsbtn.sml{width:34px;height:22px;font-size:0.58rem;}
+.tsval{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:700;min-width:52px;text-align:center;}
+.tsval.qc{color:var(--nu);text-shadow:0 0 10px var(--nu);}
+.tsval.ac{color:var(--ng);text-shadow:0 0 10px var(--ng);}
+.tssec{font-size:0.62rem;color:var(--td);}
+.sess-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px;}
+.sess-btn{background:var(--b1);border:1px solid rgba(0,245,255,0.15);border-radius:8px;color:var(--td);padding:8px 4px;font-size:0.72rem;font-family:"Orbitron",monospace;font-weight:700;cursor:pointer;transition:all 0.18s;letter-spacing:0.05em;}
+@media(hover:hover){.sess-btn:hover{border-color:var(--nc);color:var(--nc);}}
+.sess-btn.active{border-color:var(--ny);color:var(--ny);background:rgba(255,234,0,0.07);box-shadow:0 0 10px rgba(255,234,0,0.15);}
+/* TIMER OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:stretch;justify-content:center;}
+.overlay.hidden{display:none!important;}
+.qcard{background:var(--b2);border-left:1px solid rgba(191,0,255,0.3);border-right:1px solid rgba(191,0,255,0.3);width:100%;max-width:480px;display:flex;flex-direction:column;overflow:hidden;}
+.qcard-top{padding:10px 16px 8px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.qcard-mid{flex:1;overflow-y:auto;padding:10px 16px;min-height:0;}
+.qcard-mid::-webkit-scrollbar{width:3px;}
+.qcard-mid::-webkit-scrollbar-thumb{background:var(--nu);border-radius:2px;}
+.qcard-bot{padding:8px 16px 12px;flex-shrink:0;border-top:1px solid rgba(255,255,255,0.05);overflow-y:auto;max-height:44vh;}
+.qcard-bot::-webkit-scrollbar{width:3px;}
+.qcard-bot::-webkit-scrollbar-thumb{background:var(--nu);border-radius:2px;}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-bottom:8px;}
+.hud-lives{display:flex;gap:3px;align-items:center;}
+.hud-heart{font-size:0.85rem;transition:transform 0.3s;}
+.hud-heart.lost{filter:grayscale(1);opacity:0.3;}
+.hud-score-wrap{text-align:center;}
+.hud-score{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--ny);text-shadow:0 0 12px var(--ny);line-height:1;}
+.hud-score-lbl{font-family:'Orbitron',monospace;font-size:0.45rem;color:var(--td);letter-spacing:0.2em;}
+.hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.hud-streak{font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--np);text-shadow:0 0 8px var(--np);}
+.hud-combo{font-family:'Orbitron',monospace;font-size:0.65rem;color:var(--ny);text-shadow:0 0 8px var(--ny);}
+.sess-timer{font-family:"Orbitron",monospace;font-size:0.72rem;font-weight:700;color:var(--ny);text-shadow:0 0 8px var(--ny);letter-spacing:0.1em;}
+.sess-timer.warn{color:var(--np)!important;text-shadow:0 0 12px var(--np)!important;animation:sessPulse 0.5s ease-in-out infinite;}
+@keyframes sessPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.xp-wrap{margin-bottom:6px;}
+.xp-bar-track{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,var(--nu),var(--nc));border-radius:2px;transition:width 0.4s ease;box-shadow:0 0 6px var(--nu);}
+.xp-lbl{display:flex;justify-content:space-between;font-family:'Orbitron',monospace;font-size:0.48rem;color:var(--td);margin-top:2px;}
+.tphase{font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:0.2em;text-align:center;margin-bottom:6px;text-shadow:0 0 10px currentColor;}
+.tphase.qp{color:var(--nu);}
+.tphase.ap{color:var(--ng);}
+/* 出題方向バッジ */
+.dir-badge{font-family:'Orbitron',monospace;font-size:0.52rem;letter-spacing:0.15em;text-align:center;margin-bottom:4px;padding:3px 8px;border-radius:6px;display:inline-block;}
+.dir-badge.en{color:var(--nc);border:1px solid rgba(0,245,255,0.3);background:rgba(0,245,255,0.05);}
+.dir-badge.ja{color:var(--np);border:1px solid rgba(255,45,120,0.3);background:rgba(255,45,120,0.05);}
+.dir-badge-wrap{text-align:center;margin-bottom:4px;}
+.cdwrap{display:flex;align-items:center;gap:10px;}
+.cdnum{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;min-width:72px;text-align:center;line-height:1;text-shadow:0 0 24px currentColor;transition:color 0.2s;}
+.cdnum.qc{color:var(--nu);}
+.cdnum.ac{color:var(--ng);}
+.cdnum.warn{color:var(--np)!important;text-shadow:0 0 30px var(--np)!important;}
+.ptrack{flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;}
+.pfill{height:100%;border-radius:4px;}
+.pfill.qf{background:linear-gradient(90deg,var(--nu),var(--nc));box-shadow:0 0 8px var(--nu);}
+.pfill.af{background:linear-gradient(90deg,var(--ng),var(--nc));box-shadow:0 0 8px var(--ng);}
+/* 問題 */
+.tq{font-size:1.1rem;font-weight:700;text-align:center;padding:14px;background:var(--b1);border-radius:12px;border:1px solid rgba(191,0,255,0.2);margin-bottom:9px;line-height:1.6;letter-spacing:0.04em;}
+.tq.en-q{font-size:1.3rem;letter-spacing:0.06em;color:var(--nc);text-shadow:0 0 12px rgba(0,245,255,0.3);}
+.tq.ja-q{font-size:1.0rem;color:var(--np);text-shadow:0 0 10px rgba(255,45,120,0.25);}
+.tans{display:flex;flex-direction:column;gap:6px;}
+.topt{background:var(--b1);border:1px solid rgba(191,0,255,0.25);border-radius:9px;padding:9px 12px;font-size:0.85rem;display:flex;align-items:center;gap:10px;color:var(--tm);cursor:pointer;text-align:left;font-family:'Noto Sans JP',sans-serif;font-weight:500;transition:border-color 0.12s,background 0.12s,box-shadow 0.12s;width:100%;}
+.topt:not(:disabled):active{transform:scale(0.98);}
+@media(hover:hover){.topt:not(:disabled):hover{border-color:var(--nu);background:rgba(191,0,255,0.07);}}
+.topt.opt-correct{border-color:var(--ng)!important;background:rgba(57,255,20,0.1)!important;color:var(--ng)!important;box-shadow:0 0 14px rgba(57,255,20,0.25);}
+.topt.opt-correct .topt-lbl{color:var(--ng)!important;text-shadow:0 0 8px var(--ng)!important;}
+.topt.opt-wrong{border-color:var(--np)!important;background:rgba(255,45,120,0.1)!important;color:var(--np)!important;}
+.topt.opt-wrong .topt-lbl{color:var(--np)!important;}
+.topt-lbl{font-family:'Orbitron',monospace;font-size:0.6rem;color:var(--nu);min-width:16px;text-shadow:0 0 6px var(--nu);flex-shrink:0;}
+.texp-inline{font-size:0.74rem;color:var(--td);background:rgba(57,255,20,0.04);border-radius:8px;padding:8px 12px;border:1px solid rgba(57,255,20,0.2);margin-top:2px;line-height:1.5;}
+.tcounter{text-align:center;font-family:'Orbitron',monospace;font-size:0.6rem;color:var(--td);letter-spacing:0.15em;margin-bottom:8px;}
+.tctrl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.tctrl .nbtn{padding:10px 4px;font-size:0.62rem;}
+/* GAMEOVER */
+.go-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.go-card{background:var(--b2);border:1px solid rgba(191,0,255,0.4);border-radius:20px;padding:28px 20px;width:100%;max-width:360px;text-align:center;}
+.go-title{font-family:'Orbitron',monospace;font-weight:900;font-size:1.8rem;color:var(--np);text-shadow:0 0 30px var(--np);margin-bottom:8px;}
+.go-rank{font-family:'Orbitron',monospace;font-size:3rem;font-weight:900;margin:12px 0;}
+.go-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+.go-stat{background:var(--b1);border-radius:10px;padding:12px 8px;}
+.go-stat-val{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;line-height:1;}
+.go-stat-lbl{font-size:0.65rem;color:var(--td);margin-top:3px;}
+/* EFFECTS */
+.combo-popup{position:fixed;left:50%;transform:translateX(-50%);top:45%;font-family:'Orbitron',monospace;font-weight:900;pointer-events:none;z-index:300;animation:comboPop 0.9s ease-out forwards;}
+@keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(0.5)}20%{opacity:1;transform:translateX(-50%) scale(1.3)}60%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-60px) scale(0.9)}}
+.score-popup{position:fixed;pointer-events:none;z-index:300;font-family:'Orbitron',monospace;font-weight:700;animation:scorePop 1.2s ease-out forwards;}
+@keyframes scorePop{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-80px)}}
+.lvup-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:400;pointer-events:none;animation:lvupFade 1.8s ease-out forwards;}
+@keyframes lvupFade{0%,30%{opacity:1}100%{opacity:0}}
+.lvup-text{font-family:'Orbitron',monospace;font-weight:900;font-size:3rem;color:var(--ny);text-shadow:0 0 40px var(--ny),0 0 80px rgba(255,234,0,0.4);text-align:center;animation:lvupPulse 0.4s ease-out;}
+@keyframes lvupPulse{0%{transform:scale(0.4)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes timesup{0%{background:rgba(255,45,120,0)}20%{background:rgba(255,45,120,0.2)}100%{background:rgba(255,45,120,0)}}
+.timesup-flash{animation:timesup 0.4s ease-out;}
+@keyframes comboFlash{0%{box-shadow:inset 0 0 0 2px transparent}50%{box-shadow:inset 0 0 0 2px var(--ny)}100%{box-shadow:inset 0 0 0 2px transparent}}
+.combo-ring{animation:comboFlash 0.3s ease-out;}
+.life-recover-popup{position:fixed;left:50%;top:38%;transform:translateX(-50%);pointer-events:none;z-index:350;animation:lifeRecover 1.6s ease-out forwards;text-align:center;}
+@keyframes lifeRecover{0%{opacity:0;transform:translateX(-50%) scale(0.3) rotate(-10deg)}15%{opacity:1;transform:translateX(-50%) scale(1.2) rotate(2deg)}40%{transform:translateX(-50%) scale(1) rotate(0deg)}70%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-50px) scale(0.8)}}
+.life-recover-popup .lr-icon{font-size:3rem;display:block;filter:drop-shadow(0 0 20px rgba(255,45,120,0.8));}
+.life-recover-popup .lr-text{font-family:'Orbitron',monospace;font-weight:900;font-size:1.1rem;color:var(--np);text-shadow:0 0 20px var(--np);margin-top:4px;}
+.hud-shield{font-size:0.7rem;color:#00f5ff;text-shadow:0 0 10px #00f5ff;font-family:'Orbitron',monospace;font-weight:700;}
+@keyframes shieldPop{0%{opacity:0;transform:translateX(-50%) scale(0.3)}20%{opacity:1;transform:translateX(-50%) scale(1.3)}50%{transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-40px) scale(0.9)}}
+.shield-popup{position:fixed;left:50%;top:36%;transform:translateX(-50%);pointer-events:none;z-index:350;animation:shieldPop 1.6s ease-out forwards;text-align:center;}
+.shield-popup .sp-icon{font-size:3.5rem;display:block;filter:drop-shadow(0 0 24px rgba(0,245,255,0.9));}
+.shield-popup .sp-text{font-family:'Orbitron',monospace;font-weight:900;font-size:1rem;color:var(--nc);text-shadow:0 0 20px var(--nc);margin-top:4px;}
+.shield-active .qcard{border-left:1px solid rgba(0,245,255,0.5)!important;border-right:1px solid rgba(0,245,255,0.5)!important;box-shadow:inset 0 0 40px rgba(0,245,255,0.06);}
+@keyframes shieldBreak{0%{box-shadow:inset 0 0 60px rgba(0,245,255,0.3)}50%{box-shadow:inset 0 0 80px rgba(255,255,255,0.2)}100%{box-shadow:none}}
+.shield-break{animation:shieldBreak 0.6s ease-out;}
+@keyframes feverBg{0%{border-color:rgba(255,234,0,0.5)}33%{border-color:rgba(255,45,120,0.5)}66%{border-color:rgba(191,0,255,0.5)}100%{border-color:rgba(255,234,0,0.5)}}
+.fever-active .qcard{animation:feverBg 1.2s linear infinite!important;border-left-width:2px!important;border-right-width:2px!important;}
+@keyframes feverPulse{0%,100%{text-shadow:0 0 12px var(--ny)}50%{text-shadow:0 0 30px var(--ny),0 0 60px rgba(255,234,0,0.5)}}
+.fever-badge{font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:900;color:var(--ny);animation:feverPulse 0.6s ease-in-out infinite;letter-spacing:0.1em;}
+.fever-bar{height:3px;background:rgba(255,234,0,0.15);border-radius:2px;overflow:hidden;margin-top:3px;}
+.fever-bar-fill{height:100%;background:linear-gradient(90deg,var(--ny),var(--np),var(--nu));border-radius:2px;transition:width 0.3s;box-shadow:0 0 8px var(--ny);}
+@keyframes feverStart{0%{opacity:0;transform:translateX(-50%) scale(0.2) rotate(-15deg)}25%{opacity:1;transform:translateX(-50%) scale(1.4) rotate(3deg)}60%{transform:translateX(-50%) scale(1) rotate(0)}100%{opacity:0;transform:translateX(-50%) translateY(-30px)}}
+.fever-popup{position:fixed;left:50%;top:33%;transform:translateX(-50%);pointer-events:none;z-index:360;animation:feverStart 2s ease-out forwards;text-align:center;}
+.fever-popup .fp-icon{font-size:3rem;display:block;}
+.fever-popup .fp-text{font-family:'Orbitron',monospace;font-weight:900;font-size:1.5rem;background:linear-gradient(90deg,var(--ny),var(--np),var(--nu));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 10px rgba(255,234,0,0.6));}
+.fever-popup .fp-sub{font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--ny);text-shadow:0 0 10px var(--ny);margin-top:2px;}
+@keyframes particle{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--px),var(--py)) scale(0.3)}}
+.combo-particle{position:fixed;pointer-events:none;z-index:380;font-size:1.5rem;animation:particle 1s ease-out forwards;}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(191,0,255,0.4)}50%{box-shadow:0 0 44px rgba(191,0,255,0.85)}}
+.pulse{animation:pulse-glow 2s ease-in-out infinite;}
+#floatBack{position:fixed;bottom:20px;left:20px;width:48px;height:48px;background:var(--b2);border:1px solid rgba(0,245,255,0.3);border-radius:50%;color:var(--nc);font-size:1.2rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;box-shadow:0 0 16px rgba(0,245,255,0.15);transition:all 0.2s;}
+#floatBack.hidden{display:none!important;}
+@media(hover:hover){#floatBack:hover{box-shadow:0 0 28px rgba(0,245,255,0.35);transform:scale(1.05);}}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--b2);border:1px solid var(--nc);border-radius:10px;padding:10px 20px;font-size:0.8rem;color:var(--nc);z-index:999;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 20px rgba(0,245,255,0.2);white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+input,select{font-size:16px;}
+@media(max-width:380px){.cat-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ MAIN ═══ -->
+<div id="mainScreen" class="screen">
+  <div class="logo">VOCAB QUIZ</div>
+  <div class="logo-sub">ENGLISH WORDS — NEON MODE</div>
+  <div class="panel">
+    <div class="ptitle">▶ SELECT CATEGORY</div>
+    <div class="subj-grid">
+      <button class="subj-btn" onclick="openCat('pos')"><span class="subj-icon">📚</span><span>品詞別</span></button>
+      <button class="subj-btn" onclick="openCat('range')"><span class="subj-icon">🔢</span><span>番号範囲別</span></button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="ptitle">▶ 全600語から</div>
+    <button class="nbtn cy" onclick="openAll()" style="width:100%;padding:14px;font-size:0.8rem;">⚡ ALL 600 WORDS</button>
+  </div>
+</div>
+
+<!-- ═══ CATEGORY SELECT ═══ -->
+<div id="catScreen" class="screen hidden">
+  <div class="logo" id="catLogo">VOCAB</div>
+  <div class="logo-sub" id="catLogoSub">SELECT RANGE</div>
+  <div class="panel">
+    <div class="ptitle" id="catPtitle">▶ カテゴリを選択（複数可）</div>
+    <div class="sel-badge">選択中: <span id="selCount">0</span> カテゴリ（<span id="selWordCount">0</span>語）</div>
+    <div class="cat-grid" id="catGrid"></div>
+
+    <!-- 出題方向 -->
+    <div class="ptitle" style="margin-top:10px;margin-bottom:8px;">▶ QUIZ DIRECTION</div>
+    <div class="dir-row">
+      <button class="dir-btn active" id="dirEN" onclick="setDir('en')">🇺🇸 英語 → 日本語<br><span style="font-size:0.6rem;opacity:0.7">英単語を見て意味を答える</span></button>
+      <button class="dir-btn" id="dirJA" onclick="setDir('ja')">🇯🇵 日本語 → 英語<br><span style="font-size:0.6rem;opacity:0.7">意味を見て英単語を答える</span></button>
+    </div>
+    <div style="margin-bottom:12px;"></div>
+
+    <div class="tsbox">
+      <div class="tstitle">⚙ TIMER SETTINGS</div>
+      <div class="tsrow">
+        <div class="tsitem">
+          <div class="tslbl">❓ 問題</div>
+          <div class="tsstep">
+            <div class="tsbtngroup">
+              <button class="tsbtn big" onclick="chTime('q',-1)">−1</button>
+              <button class="tsbtn sml" onclick="chTime('q',-0.1)">−.1</button>
+            </div>
+            <span class="tsval qc" id="tsQ">5.0</span>
+            <span class="tssec">秒</span>
+            <div class="tsbtngroup">
+              <button class="tsbtn big" onclick="chTime('q',1)">+1</button>
+              <button class="tsbtn sml" onclick="chTime('q',0.1)">+.1</button>
+            </div>
+          </div>
+        </div>
+        <div class="tsdiv"></div>
+        <div class="tsitem">
+          <div class="tslbl">💡 解答</div>
+          <div class="tsstep">
+            <div class="tsbtngroup">
+              <button class="tsbtn big" onclick="chTime('a',-1)">−1</button>
+              <button class="tsbtn sml" onclick="chTime('a',-0.1)">−.1</button>
+            </div>
+            <span class="tsval ac" id="tsA">5.0</span>
+            <span class="tssec">秒</span>
+            <div class="tsbtngroup">
+              <button class="tsbtn big" onclick="chTime('a',1)">+1</button>
+              <button class="tsbtn sml" onclick="chTime('a',0.1)">+.1</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mode-row">
+      <button class="mode-btn active" id="mR" onclick="setMode('random')">🎲 ランダム</button>
+      <button class="mode-btn" id="mS" onclick="setMode('seq')">📋 順番通り</button>
+    </div>
+    <div class="mode-desc" id="mDesc">問題をランダムに出題します</div>
+    <div class="ptitle" style="margin-top:10px;margin-bottom:8px;">▶ LIFE MODE</div>
+    <div class="mode-row" style="margin-bottom:2px;">
+      <button class="mode-btn active" id="lifeOn" onclick="setLifeMode('on')">❤️ ライフあり</button>
+      <button class="mode-btn" id="lifeOff" onclick="setLifeMode('off')">♾️ ライフなし</button>
+    </div>
+    <div class="mode-desc" id="lifeDesc">ライフが0になるとゲームオーバー</div>
+    <div class="ptitle" style="margin-top:10px;margin-bottom:8px;">▶ PLAY TIME</div>
+    <div class="sess-grid">
+      <button class="sess-btn" onclick="setSess(60)">1分</button>
+      <button class="sess-btn" onclick="setSess(180)">3分</button>
+      <button class="sess-btn active" onclick="setSess(300)">5分</button>
+      <button class="sess-btn" onclick="setSess(600)">10分</button>
+      <button class="sess-btn" onclick="setSess(0)">∞</button>
+    </div>
+    <button class="nbtn pu pulse" id="decideBtn" disabled onclick="decideAndStart()" style="width:100%;padding:16px;font-size:0.85rem;margin-top:10px;">⏱ DECIDE &amp; START</button>
+    <div style="text-align:center"><button class="back-btn" onclick="goHome()">← 戻る</button></div>
+  </div>
+</div>
+
+<!-- ═══ TIMER OVERLAY ═══ -->
+<div id="timerOv" class="overlay hidden">
+  <div class="qcard" id="qcard">
+    <div class="qcard-top">
+      <div class="hud">
+        <div class="hud-lives" id="hudLives"></div>
+        <div class="hud-score-wrap">
+          <div class="hud-score" id="hudScore">0</div>
+          <div class="hud-score-lbl">SCORE</div>
+        </div>
+        <div class="hud-right">
+          <div class="sess-timer" id="sessTimerDisp"></div>
+          <div class="hud-streak" id="hudStreak"></div>
+          <div class="hud-combo" id="hudCombo"></div>
+        </div>
+      </div>
+      <div class="xp-wrap">
+        <div class="xp-bar-track"><div class="xp-bar-fill" id="xpFill" style="width:0%"></div></div>
+        <div class="xp-lbl"><span id="xpLvl">LV 1</span><span id="xpVal">0 / 100 XP</span></div>
+      </div>
+      <div class="dir-badge-wrap"><span class="dir-badge" id="dirBadge">EN→JA</span></div>
+      <div class="tphase qp" id="tPhase">❓ QUESTION</div>
+      <div class="cdwrap">
+        <div class="cdnum qc" id="cdNum">5.0</div>
+        <div class="ptrack"><div class="pfill qf" id="progFill" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="qcard-mid">
+      <div class="tq" id="tQ">—</div>
+      <div class="tans" id="tAns"></div>
+    </div>
+    <div class="qcard-bot">
+      <div class="tcounter" id="tCount">1 / 1</div>
+      <div class="tctrl">
+        <button class="nbtn ye" id="pauseBtn" onclick="togglePause()">⏸ 停止</button>
+        <button class="nbtn gn" onclick="skipPhase()">⏭ スキップ</button>
+        <button class="nbtn pk" onclick="closeTimer()">✕ 終了</button>
+      </div>
+      <div class="tsbox" style="margin-bottom:0;">
+        <div class="tstitle">⚙ LIVE SETTINGS</div>
+        <div class="tsrow">
+          <div class="tsitem">
+            <div class="tslbl">❓ 問題</div>
+            <div class="tsstep">
+              <div class="tsbtngroup">
+                <button class="tsbtn big" onclick="chTime('q',-1)">−1</button>
+                <button class="tsbtn sml" onclick="chTime('q',-0.1)">−.1</button>
+              </div>
+              <span class="tsval qc" id="tsQ2">5.0</span>
+              <span class="tssec">秒</span>
+              <div class="tsbtngroup">
+                <button class="tsbtn big" onclick="chTime('q',1)">+1</button>
+                <button class="tsbtn sml" onclick="chTime('q',0.1)">+.1</button>
+              </div>
+            </div>
+          </div>
+          <div class="tsdiv"></div>
+          <div class="tsitem">
+            <div class="tslbl">💡 解答</div>
+            <div class="tsstep">
+              <div class="tsbtngroup">
+                <button class="tsbtn big" onclick="chTime('a',-1)">−1</button>
+                <button class="tsbtn sml" onclick="chTime('a',-0.1)">−.1</button>
+              </div>
+              <span class="tsval ac" id="tsA2">5.0</span>
+              <span class="tssec">秒</span>
+              <div class="tsbtngroup">
+                <button class="tsbtn big" onclick="chTime('a',1)">+1</button>
+                <button class="tsbtn sml" onclick="chTime('a',0.1)">+.1</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAME OVER ═══ -->
+<div id="gameoverOv" class="go-overlay hidden">
+  <div class="go-card">
+    <div class="go-title">GAME OVER</div>
+    <div class="go-rank" id="goRank">—</div>
+    <div class="go-stats">
+      <div class="go-stat"><div class="go-stat-val" id="goScore" style="color:var(--ny)">0</div><div class="go-stat-lbl">SCORE</div></div>
+      <div class="go-stat"><div class="go-stat-val" id="goStreak" style="color:var(--np)">0</div><div class="go-stat-lbl">MAX COMBO</div></div>
+      <div class="go-stat"><div class="go-stat-val" id="goCorrect" style="color:var(--ng)">0</div><div class="go-stat-lbl">CORRECT</div></div>
+      <div class="go-stat"><div class="go-stat-val" id="goTotal" style="color:var(--nc)">0</div><div class="go-stat-lbl">TOTAL</div></div>
+    </div>
+    <button class="nbtn pu" onclick="retryGame()" style="width:100%;padding:14px;font-size:0.82rem;margin-bottom:10px;">🔄 もう一度</button>
+    <button class="nbtn cy" onclick="goHome()" style="width:100%;padding:12px;font-size:0.78rem;">🏠 トップへ</button>
+  </div>
+</div>
+
+<button id="floatBack" class="hidden" onclick="goHome()">📚</button>
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════
+   VOCAB DATA (598語)
+══════════════════════════════ */
+const VOCAB = [
+  {id:1,w:"ability",p:"名",m:"能力"},
+  {id:2,w:"habit",p:"名",m:"習慣"},
+  {id:3,w:"budget",p:"名",m:"予算"},
+  {id:4,w:"purpose",p:"名",m:"目的"},
+  {id:5,w:"dawn",p:"名",m:"夜明け"},
+  {id:6,w:"literature",p:"名",m:"文学"},
+  {id:7,w:"fee",p:"名",m:"謝礼（金）"},
+  {id:8,w:"knowledge",p:"名",m:"知識"},
+  {id:9,w:"interest",p:"名",m:"興味、利益"},
+  {id:10,w:"mass",p:"名",m:"大衆"},
+  {id:11,w:"goods",p:"名",m:"商品"},
+  {id:12,w:"effect",p:"名",m:"効果"},
+  {id:13,w:"degree",p:"名",m:"程度"},
+  {id:14,w:"option",p:"名",m:"選択肢"},
+  {id:15,w:"economy",p:"名",m:"経済"},
+  {id:16,w:"result",p:"名",m:"結果"},
+  {id:17,w:"value",p:"名",m:"価値"},
+  {id:18,w:"background",p:"名",m:"背景、素性"},
+  {id:19,w:"quality",p:"名",m:"質"},
+  {id:20,w:"quantity",p:"名",m:"量"},
+  {id:21,w:"taste",p:"名",m:"味"},
+  {id:22,w:"cancer",p:"名",m:"がん"},
+  {id:23,w:"nationality",p:"名",m:"国籍"},
+  {id:24,w:"deficit",p:"名",m:"赤字"},
+  {id:25,w:"impression",p:"名",m:"印象"},
+  {id:26,w:"duty",p:"名",m:"義務"},
+  {id:27,w:"standard",p:"名",m:"標準"},
+  {id:28,w:"affair",p:"名",m:"こと"},
+  {id:29,w:"evidence",p:"名",m:"証拠"},
+  {id:30,w:"instance",p:"名",m:"例"},
+  {id:31,w:"species",p:"名",m:"種"},
+  {id:32,w:"sort",p:"名",m:"種類"},
+  {id:33,w:"opportunity",p:"名",m:"機会"},
+  {id:34,w:"lack",p:"名",m:"欠乏"},
+  {id:35,w:"average",p:"名",m:"平均"},
+  {id:36,w:"benefit",p:"名",m:"利益"},
+  {id:37,w:"company",p:"名",m:"会社"},
+  {id:38,w:"role",p:"名",m:"役割"},
+  {id:39,w:"inquiry",p:"名",m:"調査"},
+  {id:40,w:"sum",p:"名",m:"合計"},
+  {id:41,w:"agriculture",p:"名",m:"農業"},
+  {id:42,w:"climate",p:"名",m:"気候"},
+  {id:43,w:"tax",p:"名",m:"税金"},
+  {id:44,w:"security",p:"名",m:"安全"},
+  {id:45,w:"industry",p:"名",m:"産業、勤勉"},
+  {id:46,w:"income",p:"名",m:"収入"},
+  {id:47,w:"crop",p:"名",m:"収穫（物）"},
+  {id:48,w:"wealth",p:"名",m:"富"},
+  {id:49,w:"tradition",p:"名",m:"伝統"},
+  {id:50,w:"emotion",p:"名",m:"感情"},
+  {id:51,w:"risk",p:"名",m:"危険"},
+  {id:52,w:"talent",p:"名",m:"才能"},
+  {id:53,w:"government",p:"名",m:"政府"},
+  {id:54,w:"policy",p:"名",m:"政策"},
+  {id:55,w:"population",p:"名",m:"人口"},
+  {id:56,w:"vessel",p:"名",m:"船・管"},
+  {id:57,w:"decade",p:"名",m:"十年"},
+  {id:58,w:"effort",p:"名",m:"努力"},
+  {id:59,w:"fuel",p:"名",m:"燃料"},
+  {id:60,w:"poverty",p:"名",m:"貧困"},
+  {id:61,w:"basis",p:"名",m:"基礎、土台、基準"},
+  {id:62,w:"pity",p:"名",m:"あわれみ"},
+  {id:63,w:"desire",p:"名",m:"（強い）願望"},
+  {id:64,w:"liberty",p:"名",m:"自由"},
+  {id:65,w:"luxury",p:"名",m:"贅沢（品）"},
+  {id:66,w:"labor",p:"名",m:"労働"},
+  {id:67,w:"source",p:"名",m:"源"},
+  {id:68,w:"figure",p:"名",m:"姿かたち、数字"},
+  {id:69,w:"vision",p:"名",m:"見ること"},
+  {id:70,w:"factor",p:"名",m:"要因"},
+  {id:71,w:"structure",p:"名",m:"構造（物）"},
+  {id:72,w:"continent",p:"名",m:"大陸"},
+  {id:73,w:"strategy",p:"名",m:"戦略、認識"},
+  {id:74,w:"forecast",p:"名",m:"予測"},
+  {id:75,w:"concept",p:"名",m:"概念"},
+  {id:76,w:"theme",p:"名",m:"テーマ"},
+  {id:77,w:"philosophy",p:"名",m:"哲学"},
+  {id:78,w:"theory",p:"名",m:"理論"},
+  {id:79,w:"term",p:"名",m:"用語"},
+  {id:80,w:"wisdom",p:"名",m:"知恵"},
+  {id:81,w:"civilization",p:"名",m:"文明"},
+  {id:82,w:"outcome",p:"名",m:"結果、成果"},
+  {id:83,w:"society",p:"名",m:"社会"},
+  {id:84,w:"priority",p:"名",m:"優先"},
+  {id:85,w:"quarrel",p:"名",m:"口論"},
+  {id:86,w:"object",p:"名",m:"対象"},
+  {id:87,w:"irony",p:"名",m:"皮肉"},
+  {id:88,w:"focus",p:"名",m:"焦点"},
+  {id:89,w:"pain",p:"名",m:"苦痛"},
+  {id:90,w:"incident",p:"名",m:"出来事"},
+  {id:91,w:"situation",p:"名",m:"事態"},
+  {id:92,w:"atmosphere",p:"名",m:"雰囲気"},
+  {id:93,w:"region",p:"名",m:"地域"},
+  {id:94,w:"extent",p:"名",m:"範囲"},
+  {id:95,w:"article",p:"名",m:"記事"},
+  {id:96,w:"task",p:"名",m:"仕事"},
+  {id:97,w:"protest",p:"名",m:"抗議"},
+  {id:98,w:"trend",p:"名",m:"傾向"},
+  {id:99,w:"attitude",p:"名",m:"態度"},
+  {id:100,w:"prospect",p:"名",m:"見通し"},
+  {id:101,w:"analysis",p:"名",m:"分析"},
+  {id:102,w:"disaster",p:"名",m:"災害"},
+  {id:103,w:"witness",p:"名",m:"目撃者"},
+  {id:104,w:"portion",p:"名",m:"一部、分け前、一人前"},
+  {id:105,w:"legacy",p:"名",m:"遺産、遺物"},
+  {id:106,w:"progress",p:"名",m:"進歩"},
+  {id:107,w:"principle",p:"名",m:"原則"},
+  {id:108,w:"intellect",p:"名",m:"知性"},
+  {id:109,w:"myth",p:"名",m:"神話"},
+  {id:110,w:"envy",p:"名",m:"ねたみ"},
+  {id:111,w:"broadcast",p:"名",m:"放送"},
+  {id:112,w:"oxygen",p:"名",m:"酸素"},
+  {id:113,w:"purchase",p:"名",m:"購入"},
+  {id:114,w:"appetite",p:"名",m:"食欲"},
+  {id:115,w:"delay",p:"名",m:"遅延"},
+  {id:116,w:"occasion",p:"名",m:"場合"},
+  {id:117,w:"outsider",p:"名",m:"部外者"},
+  {id:118,w:"flood",p:"名",m:"洪水"},
+  {id:119,w:"aspect",p:"名",m:"面"},
+  {id:120,w:"shortage",p:"名",m:"不足"},
+  {id:121,w:"will",p:"名",m:"意志"},
+  {id:122,w:"gene",p:"名",m:"遺伝子"},
+  {id:123,w:"profit",p:"名",m:"利益"},
+  {id:124,w:"fame",p:"名",m:"名声"},
+  {id:125,w:"grief",p:"名",m:"悲しみ"},
+  {id:126,w:"faith",p:"名",m:"信頼"},
+  {id:127,w:"solitude",p:"名",m:"孤独"},
+  {id:128,w:"sympathy",p:"名",m:"同情"},
+  {id:129,w:"conduct",p:"名",m:"行ない"},
+  {id:130,w:"honor",p:"名",m:"名誉"},
+  {id:131,w:"confidence",p:"名",m:"自信、信頼"},
+  {id:132,w:"capacity",p:"名",m:"収容力"},
+  {id:133,w:"revolution",p:"名",m:"革命"},
+  {id:134,w:"right",p:"名",m:"権利"},
+  {id:135,w:"reward",p:"名",m:"報酬"},
+  {id:136,w:"vote",p:"名",m:"投票"},
+  {id:137,w:"prejudice",p:"名",m:"偏見"},
+  {id:138,w:"fate",p:"名",m:"運命"},
+  {id:139,w:"crime",p:"名",m:"犯罪"},
+  {id:140,w:"caution",p:"名",m:"警告"},
+  {id:141,w:"conflict",p:"名",m:"闘争"},
+  {id:142,w:"race",p:"名",m:"人種"},
+  {id:143,w:"instinct",p:"名",m:"本能"},
+  {id:144,w:"nerve",p:"名",m:"神経"},
+  {id:145,w:"creature",p:"名",m:"生き物"},
+  {id:146,w:"globe",p:"名",m:"地球"},
+  {id:147,w:"era",p:"名",m:"時代"},
+  {id:148,w:"environment",p:"名",m:"環境"},
+  {id:149,w:"resource",p:"名",m:"資源"},
+  {id:150,w:"surface",p:"名",m:"表面"},
+  {id:151,w:"circumstance",p:"名",m:"状況"},
+  {id:152,w:"consequence",p:"名",m:"結果"},
+  {id:153,w:"issue",p:"名",m:"問題"},
+  {id:154,w:"influence",p:"名",m:"影響"},
+  {id:155,w:"passage",p:"名",m:"（文章の）一節"},
+  {id:156,w:"character",p:"名",m:"性格"},
+  {id:157,w:"feature",p:"名",m:"特徴"},
+  {id:158,w:"method",p:"名",m:"方法"},
+  {id:159,w:"worship",p:"名",m:"崇拝"},
+  {id:160,w:"destiny",p:"名",m:"運命"},
+  {id:161,w:"demand",p:"名",m:"要求"},
+  {id:162,w:"supply",p:"名",m:"供給"},
+  {id:163,w:"scope",p:"名",m:"範囲"},
+  {id:164,w:"fever",p:"名",m:"熱"},
+  {id:165,w:"religion",p:"名",m:"宗教"},
+  {id:166,w:"estate",p:"名",m:"財産"},
+  {id:167,w:"insight",p:"名",m:"洞察"},
+  {id:168,w:"affection",p:"名",m:"愛情"},
+  {id:169,w:"plague",p:"名",m:"疫病"},
+  {id:170,w:"defect",p:"名",m:"欠点"},
+  {id:171,w:"state",p:"名",m:"状態"},
+  {id:172,w:"evolution",p:"名",m:"発展"},
+  {id:173,w:"temper",p:"名",m:"気分"},
+  {id:174,w:"temperature",p:"名",m:"温度"},
+  {id:175,w:"conscience",p:"名",m:"良心"},
+  {id:176,w:"gratitude",p:"名",m:"感謝"},
+  {id:177,w:"harm",p:"名",m:"害"},
+  {id:178,w:"immigrant",p:"名",m:"移民"},
+  {id:179,w:"justice",p:"名",m:"正義"},
+  {id:180,w:"advantage",p:"名",m:"有利さ"},
+  {id:181,w:"phenomenon",p:"名",m:"現象"},
+  {id:182,w:"passion",p:"名",m:"激情"},
+  {id:183,w:"psychology",p:"名",m:"心理（学）"},
+  {id:184,w:"shame",p:"名",m:"恥ずかしさ"},
+  {id:185,w:"identity",p:"名",m:"同一性"},
+  {id:186,w:"wage",p:"名",m:"賃金"},
+  {id:187,w:"refuge",p:"名",m:"避難"},
+  {id:188,w:"authority",p:"名",m:"権威"},
+  {id:189,w:"leisure",p:"名",m:"余暇"},
+  {id:190,w:"nutrition",p:"名",m:"栄養"},
+  {id:191,w:"fatigue",p:"名",m:"疲労"},
+  {id:192,w:"shade",p:"名",m:"かげ（陰）"},
+  {id:193,w:"excess",p:"名",m:"過剰"},
+  {id:194,w:"monopoly",p:"名",m:"独占"},
+  {id:195,w:"material",p:"名",m:"原料"},
+  {id:196,w:"status",p:"名",m:"地位"},
+  {id:197,w:"scholar",p:"名",m:"学者"},
+  {id:198,w:"substance",p:"名",m:"実質、物質"},
+  {id:199,w:"executive",p:"名",m:"経営者、幹部"},
+  {id:200,w:"logic",p:"名",m:"論理"},
+  {id:201,w:"audience",p:"名",m:"聴衆"},
+  {id:202,w:"prosperity",p:"名",m:"繁栄"},
+  {id:203,w:"sorrow",p:"名",m:"悲しみ"},
+  {id:204,w:"territory",p:"名",m:"領域"},
+  {id:205,w:"minister",p:"名",m:"大臣"},
+  {id:206,w:"institution",p:"名",m:"機関"},
+  {id:207,w:"tide",p:"名",m:"潮流"},
+  {id:208,w:"symptom",p:"名",m:"兆候"},
+  {id:209,w:"function",p:"名",m:"機能"},
+  {id:210,w:"ape",p:"名",m:"猿"},
+  {id:211,w:"reputation",p:"名",m:"評判"},
+  {id:212,w:"privilege",p:"名",m:"特権"},
+  {id:213,w:"glory",p:"名",m:"栄光"},
+  {id:214,w:"tribe",p:"名",m:"種族"},
+  {id:215,w:"mankind",p:"名",m:"人類"},
+  {id:216,w:"fortune",p:"名",m:"富"},
+  {id:217,w:"strain",p:"名",m:"緊張（状態）"},
+  {id:218,w:"rumor",p:"名",m:"うわさ"},
+  {id:219,w:"tragedy",p:"名",m:"悲劇"},
+  {id:220,w:"tactics",p:"名",m:"戦術"},
+  {id:221,w:"murder",p:"名",m:"殺人"},
+  {id:222,w:"sacrifice",p:"名",m:"犠牲"},
+  {id:223,w:"crisis",p:"名",m:"危機"},
+  {id:224,w:"pollution",p:"名",m:"汚染"},
+  {id:225,w:"hypothesis",p:"名",m:"仮説"},
+  {id:226,w:"transaction",p:"名",m:"取引"},
+  {id:227,w:"discipline",p:"名",m:"訓練"},
+  {id:228,w:"alternative",p:"名",m:"代わりのもの"},
+  {id:229,w:"welfare",p:"名",m:"福祉"},
+  {id:230,w:"astronomy",p:"名",m:"天文学"},
+  {id:542,w:"immense",p:"名",m:"巨大な、計り知れない"},
+  {id:231,w:"exist",p:"動",m:"存在する"},
+  {id:232,w:"abolish",p:"動",m:"廃止する"},
+  {id:233,w:"consider",p:"動",m:"（深く）考える"},
+  {id:234,w:"accomplish",p:"動",m:"成し遂げる"},
+  {id:235,w:"cause",p:"動",m:"引き起こす"},
+  {id:236,w:"prefer",p:"動",m:"〜の方を好む"},
+  {id:237,w:"add",p:"動",m:"加える"},
+  {id:238,w:"remain",p:"動",m:"〜のままである"},
+  {id:239,w:"increase",p:"動",m:"増加する"},
+  {id:240,w:"adopt",p:"動",m:"採用する"},
+  {id:241,w:"deny",p:"動",m:"否定する"},
+  {id:242,w:"require",p:"動",m:"要求する"},
+  {id:243,w:"depend",p:"動",m:"頼る、依存する"},
+  {id:244,w:"develop",p:"動",m:"発達する、開発する"},
+  {id:245,w:"aid",p:"動",m:"助ける"},
+  {id:246,w:"resemble",p:"動",m:"〜に似ている"},
+  {id:247,w:"regard",p:"動",m:"〜であるとみなす"},
+  {id:248,w:"apologize",p:"動",m:"謝罪する"},
+  {id:249,w:"remind",p:"動",m:"思い出させる"},
+  {id:250,w:"discuss",p:"動",m:"議論する"},
+  {id:251,w:"distinguish",p:"動",m:"区別する"},
+  {id:252,w:"participate",p:"動",m:"参加する"},
+  {id:253,w:"surround",p:"動",m:"囲む"},
+  {id:254,w:"intend",p:"動",m:"〜するつもりである"},
+  {id:255,w:"suggest",p:"動",m:"提案する"},
+  {id:256,w:"determine",p:"動",m:"決定する"},
+  {id:257,w:"occur",p:"動",m:"起こる"},
+  {id:258,w:"accept",p:"動",m:"受け入れる"},
+  {id:259,w:"imply",p:"動",m:"（暗に）意味する"},
+  {id:260,w:"insist",p:"動",m:"主張する"},
+  {id:261,w:"refuse",p:"動",m:"拒否する"},
+  {id:262,w:"divide",p:"動",m:"分ける"},
+  {id:263,w:"consist",p:"動",m:"〜から成る"},
+  {id:264,w:"aim",p:"動",m:"ねらう"},
+  {id:265,w:"involve",p:"動",m:"含む・巻き込む"},
+  {id:266,w:"describe",p:"動",m:"描写する"},
+  {id:267,w:"prove",p:"動",m:"証明する"},
+  {id:268,w:"encourage",p:"動",m:"励ます、元気づける"},
+  {id:269,w:"relate",p:"動",m:"関係する"},
+  {id:270,w:"realize",p:"動",m:"実現する"},
+  {id:271,w:"conclude",p:"動",m:"結論する"},
+  {id:272,w:"improve",p:"動",m:"改良する"},
+  {id:273,w:"gain",p:"動",m:"得る"},
+  {id:274,w:"employ",p:"動",m:"雇う"},
+  {id:275,w:"occupy",p:"動",m:"占有する"},
+  {id:276,w:"include",p:"動",m:"含む"},
+  {id:277,w:"prevent",p:"動",m:"妨げる"},
+  {id:278,w:"educate",p:"動",m:"教育する"},
+  {id:279,w:"prohibit",p:"動",m:"禁止する"},
+  {id:280,w:"survive",p:"動",m:"〜より長生きする"},
+  {id:281,w:"offer",p:"動",m:"差し出す"},
+  {id:282,w:"explain",p:"動",m:"説明する"},
+  {id:283,w:"compete",p:"動",m:"競争する"},
+  {id:284,w:"complain",p:"動",m:"不平をいう"},
+  {id:285,w:"destroy",p:"動",m:"破壊する"},
+  {id:286,w:"proceed",p:"動",m:"進む・続ける"},
+  {id:287,w:"provide",p:"動",m:"供給する"},
+  {id:288,w:"contain",p:"動",m:"含む"},
+  {id:289,w:"remove",p:"動",m:"取り除く"},
+  {id:290,w:"approve",p:"動",m:"承認する"},
+  {id:291,w:"recognize",p:"動",m:"認識する"},
+  {id:292,w:"concern",p:"動",m:"関係する"},
+  {id:293,w:"notice",p:"動",m:"気づく"},
+  {id:294,w:"satisfy",p:"動",m:"満足させる"},
+  {id:295,w:"deal",p:"動",m:"扱う"},
+  {id:296,w:"affect",p:"動",m:"影響する"},
+  {id:297,w:"exclude",p:"動",m:"排除する"},
+  {id:298,w:"obtain",p:"動",m:"獲得する"},
+  {id:299,w:"doubt",p:"動",m:"疑う"},
+  {id:300,w:"express",p:"動",m:"表現する"},
+  {id:301,w:"exchange",p:"動",m:"交換する"},
+  {id:302,w:"respond",p:"動",m:"反応する"},
+  {id:303,w:"earn",p:"動",m:"儲ける"},
+  {id:304,w:"establish",p:"動",m:"設立する"},
+  {id:305,w:"suspect",p:"動",m:"疑う"},
+  {id:306,w:"extend",p:"動",m:"広げる"},
+  {id:307,w:"annoy",p:"動",m:"困らせる"},
+  {id:308,w:"disappoint",p:"動",m:"失望させる"},
+  {id:309,w:"replace",p:"動",m:"〜にとってかわる"},
+  {id:310,w:"argue",p:"動",m:"論じる"},
+  {id:311,w:"behave",p:"動",m:"ふるまう"},
+  {id:312,w:"force",p:"動",m:"無理に〜させる"},
+  {id:313,w:"obey",p:"動",m:"従う"},
+  {id:314,w:"warn",p:"動",m:"警告する"},
+  {id:315,w:"vary",p:"動",m:"変わる"},
+  {id:316,w:"allow",p:"動",m:"許す"},
+  {id:317,w:"accompany",p:"動",m:"同行する"},
+  {id:318,w:"impose",p:"動",m:"押しつける"},
+  {id:319,w:"protect",p:"動",m:"保護する"},
+  {id:320,w:"compare",p:"動",m:"比較する"},
+  {id:321,w:"possess",p:"動",m:"所有する"},
+  {id:322,w:"negotiate",p:"動",m:"交渉する"},
+  {id:323,w:"tend",p:"動",m:"〜する傾向がある"},
+  {id:324,w:"compose",p:"動",m:"構成する"},
+  {id:325,w:"confuse",p:"動",m:"混乱させる"},
+  {id:326,w:"bother",p:"動",m:"悩ませる"},
+  {id:327,w:"appreciate",p:"動",m:"真価を認める"},
+  {id:328,w:"assure",p:"動",m:"保証する"},
+  {id:329,w:"maintain",p:"動",m:"保つ"},
+  {id:330,w:"publish",p:"動",m:"出版する"},
+  {id:331,w:"forgive",p:"動",m:"許す"},
+  {id:332,w:"forbid",p:"動",m:"禁じる"},
+  {id:333,w:"refer",p:"動",m:"言及する、参照する"},
+  {id:334,w:"despair",p:"動",m:"絶望する"},
+  {id:335,w:"treat",p:"動",m:"扱う"},
+  {id:336,w:"avoid",p:"動",m:"避ける"},
+  {id:337,w:"convince",p:"動",m:"納得させる"},
+  {id:338,w:"fulfill",p:"動",m:"成しとげる"},
+  {id:339,w:"accuse",p:"動",m:"非難する"},
+  {id:340,w:"compromise",p:"動",m:"妥協する"},
+  {id:341,w:"revive",p:"動",m:"復活する"},
+  {id:342,w:"consume",p:"動",m:"消費する"},
+  {id:343,w:"achieve",p:"動",m:"達成する"},
+  {id:344,w:"seize",p:"動",m:"つかむ"},
+  {id:345,w:"adapt",p:"動",m:"適合させる"},
+  {id:346,w:"hesitate",p:"動",m:"ちゅうちょする"},
+  {id:347,w:"observe",p:"動",m:"観察する"},
+  {id:348,w:"reveal",p:"動",m:"明かす"},
+  {id:349,w:"content",p:"動",m:"満足する"},
+  {id:350,w:"release",p:"動",m:"放つ"},
+  {id:351,w:"stare",p:"動",m:"見つめる"},
+  {id:352,w:"overcome",p:"動",m:"打ち勝つ"},
+  {id:353,w:"represent",p:"動",m:"代表する"},
+  {id:354,w:"deliver",p:"動",m:"配達する"},
+  {id:355,w:"permit",p:"動",m:"許す"},
+  {id:356,w:"pretend",p:"動",m:"〜のふりをする"},
+  {id:357,w:"concentrate",p:"動",m:"集中する"},
+  {id:358,w:"endure",p:"動",m:"耐える"},
+  {id:359,w:"suspend",p:"動",m:"吊るす"},
+  {id:360,w:"consult",p:"動",m:"相談する"},
+  {id:361,w:"swallow",p:"動",m:"飲み込む"},
+  {id:362,w:"mention",p:"動",m:"言及する"},
+  {id:363,w:"perceive",p:"動",m:"知覚する"},
+  {id:364,w:"indicate",p:"動",m:"指し示す"},
+  {id:365,w:"predict",p:"動",m:"予言する"},
+  {id:366,w:"persist",p:"動",m:"固執する"},
+  {id:367,w:"claim",p:"動",m:"（当然のことを）要求する"},
+  {id:368,w:"recommend",p:"動",m:"推薦する"},
+  {id:369,w:"confirm",p:"動",m:"確かめる"},
+  {id:370,w:"inspect",p:"動",m:"検査する"},
+  {id:371,w:"struggle",p:"動",m:"奮闘する"},
+  {id:372,w:"explore",p:"動",m:"探検する"},
+  {id:373,w:"imitate",p:"動",m:"まねる"},
+  {id:374,w:"apply",p:"動",m:"当てはめる"},
+  {id:375,w:"investigate",p:"動",m:"調査する"},
+  {id:376,w:"utter",p:"動",m:"言う"},
+  {id:377,w:"illustrate",p:"動",m:"説明する"},
+  {id:378,w:"solve",p:"動",m:"解く"},
+  {id:379,w:"postpone",p:"動",m:"延期する"},
+  {id:380,w:"advance",p:"動",m:"進む"},
+  {id:381,w:"derive",p:"動",m:"引き出す"},
+  {id:382,w:"escape",p:"動",m:"逃げる"},
+  {id:383,w:"construct",p:"動",m:"構築する"},
+  {id:384,w:"capture",p:"動",m:"とらえる"},
+  {id:385,w:"manage",p:"動",m:"管理する"},
+  {id:386,w:"rob",p:"動",m:"盗む、奪う"},
+  {id:387,w:"cling",p:"動",m:"執着する"},
+  {id:388,w:"persuade",p:"動",m:"説得する"},
+  {id:389,w:"approach",p:"動",m:"近づく"},
+  {id:390,w:"reflect",p:"動",m:"反射する"},
+  {id:391,w:"react",p:"動",m:"反応する"},
+  {id:392,w:"interrupt",p:"動",m:"妨げる"},
+  {id:393,w:"urge",p:"動",m:"促す"},
+  {id:394,w:"submit",p:"動",m:"提出する"},
+  {id:395,w:"regret",p:"動",m:"後悔する"},
+  {id:396,w:"attract",p:"動",m:"魅了する"},
+  {id:397,w:"respect",p:"動",m:"尊敬する"},
+  {id:398,w:"oblige",p:"動",m:"無理に〜させる"},
+  {id:399,w:"isolate",p:"動",m:"孤立させる"},
+  {id:400,w:"neglect",p:"動",m:"怠る"},
+  {id:401,w:"inform",p:"動",m:"通知する"},
+  {id:402,w:"prevail",p:"動",m:"流布する"},
+  {id:403,w:"invest",p:"動",m:"投資する"},
+  {id:404,w:"punish",p:"動",m:"罰する"},
+  {id:405,w:"exhibit",p:"動",m:"展示する"},
+  {id:406,w:"incline",p:"動",m:"傾く、する気になる"},
+  {id:407,w:"conceal",p:"動",m:"隠す"},
+  {id:408,w:"attempt",p:"動",m:"試みる"},
+  {id:409,w:"reject",p:"動",m:"拒絶する"},
+  {id:410,w:"suffer",p:"動",m:"苦しむ"},
+  {id:411,w:"distribute",p:"動",m:"分配する"},
+  {id:412,w:"unify",p:"動",m:"統一する、一体化する"},
+  {id:413,w:"repair",p:"動",m:"修理する"},
+  {id:414,w:"perform",p:"動",m:"実行する"},
+  {id:415,w:"ignore",p:"動",m:"無視する"},
+  {id:416,w:"contribute",p:"動",m:"貢献する"},
+  {id:417,w:"survey",p:"動",m:"調査する"},
+  {id:418,w:"surrender",p:"動",m:"降伏する"},
+  {id:419,w:"absorb",p:"動",m:"吸収する"},
+  {id:420,w:"seek",p:"動",m:"捜す"},
+  {id:421,w:"operate",p:"動",m:"作動する"},
+  {id:422,w:"blame",p:"動",m:"非難する"},
+  {id:423,w:"pursue",p:"動",m:"追跡する"},
+  {id:424,w:"transport",p:"動",m:"輸送する"},
+  {id:425,w:"cure",p:"動",m:"治療する"},
+  {id:426,w:"emphasize",p:"動",m:"強調する"},
+  {id:427,w:"withdraw",p:"動",m:"引っ込める"},
+  {id:428,w:"alter",p:"動",m:"変える"},
+  {id:429,w:"grasp",p:"動",m:"つかむ"},
+  {id:430,w:"guarantee",p:"動",m:"保証する"},
+  {id:454,w:"grateful",p:"動",m:"感謝する"},
+  {id:431,w:"acid",p:"形",m:"酸の"},
+  {id:432,w:"likely",p:"形",m:"ありそうな"},
+  {id:433,w:"calm",p:"形",m:"穏やかな"},
+  {id:434,w:"available",p:"形",m:"利用できる"},
+  {id:435,w:"certain",p:"形",m:"ある、確かな"},
+  {id:436,w:"aggressive",p:"形",m:"攻撃的な"},
+  {id:437,w:"individual",p:"形",m:"個々の"},
+  {id:438,w:"common",p:"形",m:"共通の、普通の、一般的な"},
+  {id:439,w:"major",p:"形",m:"多数の"},
+  {id:440,w:"equal",p:"形",m:"等しい"},
+  {id:441,w:"aware",p:"形",m:"知って（いる）"},
+  {id:442,w:"similar",p:"形",m:"類似の、似ている"},
+  {id:443,w:"complete",p:"形",m:"完全な"},
+  {id:444,w:"precise",p:"形",m:"正確な"},
+  {id:445,w:"worth",p:"形",m:"価値のある"},
+  {id:446,w:"novel",p:"形",m:"新奇な"},
+  {id:447,w:"extinct",p:"形",m:"絶滅した"},
+  {id:448,w:"fluent",p:"形",m:"流暢な"},
+  {id:449,w:"positive",p:"形",m:"積極的な、肯定的な"},
+  {id:450,w:"severe",p:"形",m:"厳しい"},
+  {id:451,w:"adequate",p:"形",m:"十分な"},
+  {id:452,w:"immediate",p:"形",m:"即座の"},
+  {id:453,w:"independent",p:"形",m:"独立した"},
+  {id:455,w:"previous",p:"形",m:"まえの"},
+  {id:456,w:"silly",p:"形",m:"ばかげた"},
+  {id:457,w:"patient",p:"形",m:"忍耐強い"},
+  {id:458,w:"vast",p:"形",m:"広大な"},
+  {id:459,w:"strict",p:"形",m:"厳密な"},
+  {id:460,w:"familiar",p:"形",m:"よく知られた、馴染みの"},
+  {id:461,w:"convenient",p:"形",m:"便利な"},
+  {id:462,w:"sufficient",p:"形",m:"十分な"},
+  {id:463,w:"entire",p:"形",m:"完全な"},
+  {id:464,w:"rare",p:"形",m:"まれな"},
+  {id:465,w:"various",p:"形",m:"様々の"},
+  {id:466,w:"proper",p:"形",m:"適当な"},
+  {id:467,w:"naive",p:"形",m:"世間知らずの"},
+  {id:468,w:"recent",p:"形",m:"最近の"},
+  {id:469,w:"precious",p:"形",m:"貴重な"},
+  {id:470,w:"slight",p:"形",m:"わずかな"},
+  {id:471,w:"tough",p:"形",m:"厳しい、丈夫な、タフな"},
+  {id:472,w:"general",p:"形",m:"一般の"},
+  {id:473,w:"serious",p:"形",m:"まじめな"},
+  {id:474,w:"eager",p:"形",m:"熱望して"},
+  {id:475,w:"conscious",p:"形",m:"意識している"},
+  {id:476,w:"mutual",p:"形",m:"相互の"},
+  {id:477,w:"particular",p:"形",m:"特定の、特別な"},
+  {id:478,w:"current",p:"形",m:"現在の"},
+  {id:479,w:"significant",p:"形",m:"重要な"},
+  {id:480,w:"optimistic",p:"形",m:"楽観的な"},
+  {id:481,w:"accurate",p:"形",m:"正確な"},
+  {id:482,w:"ordinary",p:"形",m:"普通の"},
+  {id:483,w:"extreme",p:"形",m:"極端な"},
+  {id:484,w:"conservative",p:"形",m:"保守的な"},
+  {id:485,w:"legal",p:"形",m:"法律の"},
+  {id:486,w:"financial",p:"形",m:"財政の"},
+  {id:487,w:"remarkable",p:"形",m:"注目すべき"},
+  {id:488,w:"obvious",p:"形",m:"明らかな"},
+  {id:489,w:"innocent",p:"形",m:"罪のない"},
+  {id:490,w:"solid",p:"形",m:"固い、固体"},
+  {id:491,w:"fundamental",p:"形",m:"基本的な"},
+  {id:492,w:"incredible",p:"形",m:"信じられない"},
+  {id:493,w:"abstract",p:"形",m:"抽象的な"},
+  {id:494,w:"brief",p:"形",m:"短い"},
+  {id:495,w:"appropriate",p:"形",m:"適切な、ふさわしい"},
+  {id:496,w:"rapid",p:"形",m:"急速な"},
+  {id:497,w:"passive",p:"形",m:"受動的な"},
+  {id:498,w:"trivial",p:"形",m:"ささいな"},
+  {id:499,w:"enormous",p:"形",m:"巨大な"},
+  {id:500,w:"reluctant",p:"形",m:"気が進まない"},
+  {id:501,w:"vital",p:"形",m:"生命の"},
+  {id:502,w:"fatal",p:"形",m:"致命的な"},
+  {id:503,w:"sensitive",p:"形",m:"敏感な"},
+  {id:504,w:"narrow",p:"形",m:"狭い"},
+  {id:505,w:"radical",p:"形",m:"急進的な"},
+  {id:506,w:"rational",p:"形",m:"合理的な"},
+  {id:507,w:"generous",p:"形",m:"寛容な"},
+  {id:508,w:"earnest",p:"形",m:"熱心な"},
+  {id:509,w:"external",p:"形",m:"外部の"},
+  {id:510,w:"domestic",p:"形",m:"自国の"},
+  {id:511,w:"prime",p:"形",m:"第一の"},
+  {id:512,w:"moderate",p:"形",m:"適度の"},
+  {id:513,w:"inevitable",p:"形",m:"避けられない"},
+  {id:514,w:"intimate",p:"形",m:"親密な"},
+  {id:515,w:"primitive",p:"形",m:"原始的な"},
+  {id:516,w:"rude",p:"形",m:"無作法な"},
+  {id:517,w:"prominent",p:"形",m:"目立つ"},
+  {id:518,w:"modest",p:"形",m:"ひかえめな"},
+  {id:519,w:"punctual",p:"形",m:"時間に正確な"},
+  {id:520,w:"nuclear",p:"形",m:"原子力の"},
+  {id:521,w:"principal",p:"形",m:"主要な"},
+  {id:522,w:"sophisticated",p:"形",m:"洗練された"},
+  {id:523,w:"mature",p:"形",m:"成熟した"},
+  {id:524,w:"artificial",p:"形",m:"人工の"},
+  {id:525,w:"temporary",p:"形",m:"一時的な"},
+  {id:526,w:"curious",p:"形",m:"奇妙な"},
+  {id:527,w:"ancient",p:"形",m:"古代の"},
+  {id:528,w:"military",p:"形",m:"軍事の"},
+  {id:529,w:"odd",p:"形",m:"奇妙な"},
+  {id:530,w:"private",p:"形",m:"個人の"},
+  {id:531,w:"abundant",p:"形",m:"豊富な"},
+  {id:532,w:"deaf",p:"形",m:"耳が聞こえない"},
+  {id:533,w:"remote",p:"形",m:"離れた"},
+  {id:534,w:"selfish",p:"形",m:"利己的な"},
+  {id:535,w:"contemporary",p:"形",m:"同時代の"},
+  {id:536,w:"visible",p:"形",m:"目に見える"},
+  {id:537,w:"practical",p:"形",m:"実用的な"},
+  {id:538,w:"critical",p:"形",m:"批評の、ひじょうに重要な"},
+  {id:539,w:"polite",p:"形",m:"礼儀正しい"},
+  {id:540,w:"complex",p:"形",m:"複雑な"},
+  {id:541,w:"physical",p:"形",m:"肉体的な"},
+  {id:543,w:"efficient",p:"形",m:"能率的な"},
+  {id:544,w:"thorough",p:"形",m:"徹底的な"},
+  {id:545,w:"plain",p:"形",m:"明白な"},
+  {id:546,w:"tiny",p:"形",m:"ちっぽけな"},
+  {id:547,w:"complicated",p:"形",m:"複雑な"},
+  {id:548,w:"medium",p:"形",m:"中ぐらいの"},
+  {id:549,w:"alien",p:"形",m:"外国（人）の"},
+  {id:550,w:"stable",p:"形",m:"安定した"},
+  {id:551,w:"peculiar",p:"形",m:"独特な"},
+  {id:552,w:"bare",p:"形",m:"裸の"},
+  {id:553,w:"subtle",p:"形",m:"微妙な"},
+  {id:554,w:"political",p:"形",m:"政治の"},
+  {id:555,w:"empty",p:"形",m:"からの"},
+  {id:556,w:"typical",p:"形",m:"典型的な"},
+  {id:557,w:"permanent",p:"形",m:"永続する"},
+  {id:558,w:"eternal",p:"形",m:"永遠の"},
+  {id:559,w:"viable",p:"形",m:"実行可能な、実現可能な"},
+  {id:560,w:"vague",p:"形",m:"漠然とした"},
+  {id:561,w:"outstanding",p:"形",m:"目立った"},
+  {id:562,w:"huge",p:"形",m:"巨大な"},
+  {id:563,w:"adverse",p:"形",m:"不利な、不都合な、逆の"},
+  {id:564,w:"specific",p:"形",m:"特定の"},
+  {id:565,w:"intense",p:"形",m:"強烈な"},
+  {id:566,w:"extraordinary",p:"形",m:"異常な・並外れた"},
+  {id:567,w:"ultimate",p:"形",m:"究極の"},
+  {id:568,w:"numerous",p:"形",m:"無数の"},
+  {id:569,w:"marvelous",p:"形",m:"おどろくべき"},
+  {id:570,w:"keen",p:"形",m:"鋭い"},
+  {id:571,w:"valid",p:"形",m:"妥当な"},
+  {id:572,w:"decent",p:"形",m:"まともな"},
+  {id:573,w:"sacred",p:"形",m:"神聖な"},
+  {id:574,w:"indifferent",p:"形",m:"無関心な"},
+  {id:575,w:"probably",p:"副",m:"たぶん"},
+  {id:576,w:"originally",p:"副",m:"もともとは、本来は"},
+  {id:577,w:"favorably",p:"副",m:"好意的に"},
+  {id:578,w:"hardly",p:"副",m:"ほとんど〜ない"},
+  {id:579,w:"frequently",p:"副",m:"しばしば"},
+  {id:580,w:"reliably",p:"副",m:"確実に"},
+  {id:581,w:"merely",p:"副",m:"単に"},
+  {id:582,w:"frankly",p:"副",m:"率直に"},
+  {id:583,w:"somewhat",p:"副",m:"いくらか"},
+  {id:584,w:"thus",p:"副",m:"このように、したがって"},
+  {id:585,w:"meanwhile",p:"副",m:"そのあいだに"},
+  {id:586,w:"therefore",p:"副",m:"それゆえに"},
+  {id:587,w:"otherwise",p:"副",m:"さもなければ"},
+  {id:588,w:"widely",p:"副",m:"広く、大いに"},
+  {id:589,w:"awful",p:"副",m:"ひどい"},
+  {id:590,w:"deliberately",p:"副",m:"故意に"},
+  {id:591,w:"decisively",p:"副",m:"断固として、決定的に"},
+  {id:592,w:"mostly",p:"副",m:"ほとんど、主に"},
+  {id:593,w:"eventually",p:"副",m:"最終的に"},
+  {id:594,w:"nevertheless",p:"副",m:"にもかかわらず"},
+  {id:595,w:"incorrectly",p:"副",m:"不正確に、間違って"},
+  {id:596,w:"theoretically",p:"副",m:"理論的に"},
+  {id:597,w:"terrible",p:"副",m:"恐ろしい"},
+  {id:598,w:"moreover",p:"副",m:"さらに"},
+  {id:599,w:"except",p:"前",m:"〜を除けば"},
+  {id:600,w:"besides",p:"前",m:"に加えて"}
+];
+
+/* ══════════════════════════════
+   CATEGORY DEFINITIONS
+══════════════════════════════ */
+const CAT_POS = {
+  label:'📚 品詞別',
+  items:[
+    {id:'pos_noun',  name:'名詞（名）', filter: v=>v.p==='名'},
+    {id:'pos_verb',  name:'動詞（動）', filter: v=>v.p==='動'},
+    {id:'pos_adj',   name:'形容詞（形）',filter: v=>v.p==='形'},
+    {id:'pos_adv',   name:'副詞・前置詞（副／前）',filter: v=>v.p==='副'||v.p==='前'},
+  ]
+};
+
+const CAT_RANGE = {
+  label:'🔢 番号範囲別',
+  items:[
+    {id:'r1',   name:'No.1 〜 100',   filter: v=>v.id>=1&&v.id<=100},
+    {id:'r2',   name:'No.101 〜 200', filter: v=>v.id>=101&&v.id<=200},
+    {id:'r3',   name:'No.201 〜 300', filter: v=>v.id>=201&&v.id<=300},
+    {id:'r4',   name:'No.301 〜 400', filter: v=>v.id>=301&&v.id<=400},
+    {id:'r5',   name:'No.401 〜 500', filter: v=>v.id>=401&&v.id<=500},
+    {id:'r6',   name:'No.501 〜 600', filter: v=>v.id>=501&&v.id<=600},
+  ]
+};
+
+/* 選択肢生成: 同じ品詞からランダムに3つ選ぶ */
+function getDistractors(correct, pool) {
+  const samePOS = pool.filter(v => v.id !== correct.id && v.p === correct.p);
+  const shuffled = samePOS.sort(() => Math.random() - 0.5);
+  // 不足時は他品詞で補う
+  const extras = pool.filter(v => v.id !== correct.id && v.p !== correct.p).sort(()=>Math.random()-0.5);
+  const merged = [...shuffled, ...extras];
+  return merged.slice(0,3);
+}
+
+/* ══════════════════════════════
+   STATE
+══════════════════════════════ */
+let selCatIds = new Set();
+let catMode = 'pos'; // 'pos' | 'range'
+let quizDir = 'en'; // 'en'=英→日, 'ja'=日→英
+let pool = [];
+let qMode = 'random';
+let sessLimit = 300;
+let sessRemain = 0, sessTout = null, sessRaf = null;
+let tQ = 5.0, tA = 5.0;
+let tPaused = false, tPhase = 'q', tProbs = [], tIdx = 0;
+let tTout = null, tRaf = null, lastBeepSec = -1;
+let qStartTime = 0;
+let gScore=0, gStreak=0, gMaxStreak=0, gCombo=0;
+const MAX_LIVES=5; let gLives=3;
+let gCorrect=0, gTotal=0;
+let gLifeMode='on';
+let gLevel=1, gXP=0;
+const XP_PER_LEVEL=[100,150,200,250,300,350,400,500,600,800];
+let gShield=0, gFever=false, gFeverEnd=0, gFeverRaf=null;
+const COMBO_HEAL=5, COMBO_SHIELD=10, COMBO_FEVER=15, FEVER_DURATION=10000;
+
+function comboMult(c){if(c<3)return 1;if(c<5)return 1.5;if(c<8)return 2;if(c<12)return 3;if(c<20)return 5;return 8;}
+function comboLabel(c){if(c<3)return'';if(c<5)return'🔥 COMBO x1.5';if(c<8)return'⚡ COMBO x2';if(c<12)return'💥 COMBO x3';if(c<20)return'🌟 COMBO x5';return'👑 MAX x8';}
+
+/* ══════════════════════════════
+   SCREEN
+══════════════════════════════ */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');window.scrollTo(0,0);}
+function goHome(){
+  clk(); endFever();
+  document.getElementById('floatBack').classList.add('hidden');
+  document.getElementById('timerOv').classList.add('hidden');
+  document.getElementById('gameoverOv').classList.add('hidden');
+  show('mainScreen');
+}
+
+/* ══════════════════════════════
+   CATEGORY NAVIGATION
+══════════════════════════════ */
+function openCat(mode){
+  clk(); catMode=mode; selCatIds.clear();
+  resetCatScreenState();
+  if(mode==='pos'){
+    document.getElementById('catLogo').textContent='📚 品詞別';
+    document.getElementById('catLogoSub').textContent='SELECT BY PART OF SPEECH';
+  } else {
+    document.getElementById('catLogo').textContent='🔢 番号範囲別';
+    document.getElementById('catLogoSub').textContent='SELECT BY NUMBER RANGE';
+  }
+  renderCatGrid();
+  show('catScreen');
+}
+function openAll(){
+  clk(); catMode='pos'; selCatIds.clear();
+  resetCatScreenState();
+  // select all
+  CAT_POS.items.forEach(c=>selCatIds.add(c.id));
+  document.getElementById('catLogo').textContent='⚡ ALL WORDS';
+  document.getElementById('catLogoSub').textContent='600 WORDS SELECTED';
+  renderCatGrid();
+  updateSelCount();
+  show('catScreen');
+}
+
+function resetCatScreenState(){
+  qMode='random';
+  document.getElementById('mR').classList.add('active');
+  document.getElementById('mS').classList.remove('active');
+  document.getElementById('mDesc').textContent='問題をランダムに出題します';
+  sessLimit=300;
+  document.querySelectorAll('.sess-btn').forEach(b=>{
+    const isInf=b.textContent==='∞';
+    const s=parseInt(b.getAttribute('onclick').match(/\d+/)?.[0]??'0');
+    b.classList.toggle('active',isInf?false:s===300);
+  });
+  tQ=5.0; tA=5.0;
+  syncSettings();
+  gLifeMode='on';
+  document.getElementById('lifeOn').classList.add('active');
+  document.getElementById('lifeOff').classList.remove('active');
+  document.getElementById('lifeDesc').textContent='ライフが0になるとゲームオーバー';
+}
+
+function renderCatGrid(){
+  const grid=document.getElementById('catGrid');
+  grid.innerHTML='';
+  const def = catMode==='pos' ? CAT_POS : CAT_RANGE;
+  // すべて選択ボタン
+  const allBtn=document.createElement('button');
+  allBtn.className='cat-btn'+(def.items.every(c=>selCatIds.has(c.id))?' sel':'');
+  allBtn.style.cssText='grid-column:1/-1;border-style:dashed;font-family:"Orbitron",monospace;font-size:0.65rem;letter-spacing:0.1em;';
+  allBtn.textContent=def.items.every(c=>selCatIds.has(c.id))?'✓ すべて解除':'＋ すべて選択';
+  allBtn.onclick=()=>{
+    clk();
+    const allSel=def.items.every(c=>selCatIds.has(c.id));
+    if(allSel){def.items.forEach(c=>selCatIds.delete(c.id));}
+    else{def.items.forEach(c=>selCatIds.add(c.id));}
+    renderCatGrid(); updateSelCount();
+  };
+  grid.appendChild(allBtn);
+  def.items.forEach(c=>{
+    const cnt = VOCAB.filter(c.filter).length;
+    const b=document.createElement('button');
+    b.className='cat-btn'+(selCatIds.has(c.id)?' sel':'');
+    b.innerHTML=`${c.name}<br><span style="font-size:0.6rem;opacity:0.6">${cnt}語</span>`;
+    b.onclick=()=>{
+      clk();
+      if(selCatIds.has(c.id)){selCatIds.delete(c.id);b.classList.remove('sel');}
+      else{selCatIds.add(c.id);b.classList.add('sel');}
+      updateSelCount();
+      // allBtnの表示更新
+      const nowAll=def.items.every(c=>selCatIds.has(c.id));
+      allBtn.textContent=nowAll?'✓ すべて解除':'＋ すべて選択';
+      allBtn.classList.toggle('sel',nowAll);
+    };
+    grid.appendChild(b);
+  });
+  updateSelCount();
+}
+
+function updateSelCount(){
+  const def=catMode==='pos'?CAT_POS:CAT_RANGE;
+  const wordCount=[...selCatIds].reduce((acc,id)=>{
+    const item=def.items.find(c=>c.id===id);
+    return acc+(item?VOCAB.filter(item.filter).length:0);
+  },0);
+  document.getElementById('selCount').textContent=selCatIds.size;
+  document.getElementById('selWordCount').textContent=wordCount;
+  document.getElementById('decideBtn').disabled=(selCatIds.size===0);
+}
+
+/* ══════════════════════════════
+   QUIZ DIRECTION
+══════════════════════════════ */
+function setDir(d){
+  clk(); quizDir=d;
+  document.getElementById('dirEN').classList.toggle('active',d==='en');
+  document.getElementById('dirJA').classList.toggle('active',d==='ja');
+}
+
+/* ══════════════════════════════
+   BUILD POOL & START
+══════════════════════════════ */
+function buildPool(){
+  const def=catMode==='pos'?CAT_POS:CAT_RANGE;
+  const wordSet=new Set();
+  selCatIds.forEach(id=>{
+    const item=def.items.find(c=>c.id===id);
+    if(item) VOCAB.filter(item.filter).forEach(v=>wordSet.add(v));
+  });
+  return [...wordSet];
+}
+
+function makeQuestion(vocab, allWords){
+  const distractors = getDistractors(vocab, allWords);
+  if(quizDir==='en'){
+    // 英→日: 英単語を見て日本語訳を選ぶ
+    const correctAns = vocab.m;
+    const wrongAnss = distractors.map(d=>d.m);
+    const allOpts = [correctAns, ...wrongAnss].sort(()=>Math.random()-0.5);
+    return {
+      q: vocab.w,
+      qClass: 'en-q',
+      opts: allOpts,
+      ans: allOpts.indexOf(correctAns),
+      exp: `${vocab.w} [${vocab.p}] = ${vocab.m}`,
+      word: vocab.w,
+      meaning: vocab.m
+    };
+  } else {
+    // 日→英: 日本語を見て英単語を選ぶ
+    const correctAns = vocab.w;
+    const wrongAnss = distractors.map(d=>d.w);
+    const allOpts = [correctAns, ...wrongAnss].sort(()=>Math.random()-0.5);
+    return {
+      q: `${vocab.m}【${vocab.p}】`,
+      qClass: 'ja-q',
+      opts: allOpts,
+      ans: allOpts.indexOf(correctAns),
+      exp: `${vocab.m} → ${vocab.w}`,
+      word: vocab.w,
+      meaning: vocab.m
+    };
+  }
+}
+
+function decideAndStart(){
+  if(gLifeMode==='off'&&sessLimit===0){toast('⚠ ライフなしモードでは時間を設定してください');return;}
+  const words = buildPool();
+  if(words.length===0){toast('⚠ 単語が見つかりません');return;}
+  pool = words;
+  document.getElementById('floatBack').classList.remove('hidden');
+  resetGame();
+  startTimer();
+}
+function retryGame(){
+  document.getElementById('gameoverOv').classList.add('hidden');
+  stopSessTimer(); resetGame(); startTimer();
+}
+function resetGame(){
+  gScore=0;gStreak=0;gMaxStreak=0;gCombo=0;
+  gLives=3;gCorrect=0;gTotal=0;gLevel=1;gXP=0;
+  gShield=0;gFever=false;gFeverEnd=0;
+  cancelAnimationFrame(gFeverRaf);
+  document.getElementById('timerOv').classList.remove('shield-active','fever-active');
+  updateHUD();
+}
+
+/* ══════════════════════════════
+   GAME LOGIC
+══════════════════════════════ */
+function onCorrect(elapsed){
+  gCombo++;gStreak++;
+  if(gStreak>gMaxStreak)gMaxStreak=gStreak;
+  gCorrect++;gTotal++;
+  const timeBonus=Math.floor((1-Math.min(elapsed,tQ*1000)/(tQ*1000))*100);
+  const mult=comboMult(gCombo);
+  const feverMult=gFever?2:1;
+  const pts=Math.floor((100+timeBonus)*mult*feverMult);
+  gScore+=pts;
+  const xp=Math.floor(20*mult*feverMult);
+  addXP(xp);
+  checkComboMilestones();
+  updateHUD();
+  if(gCombo>=3){showComboPopup(gCombo,mult);document.getElementById('qcard').classList.add('combo-ring');setTimeout(()=>document.getElementById('qcard').classList.remove('combo-ring'),300);}
+  showScorePopup('+'+pts+(gFever?' 🔥':''),gFever?'#ff2d78':'#ffea00');
+  sfxCorrect();
+}
+function checkComboMilestones(){
+  if(gCombo>0&&gCombo%COMBO_HEAL===0){
+    if(gLifeMode==='on'&&gLives<MAX_LIVES){gLives++;showLifeRecover();sfxHeal();spawnParticles('❤️',8);}
+    else if(gLifeMode==='off'){gScore+=200;showScorePopup('+200 BONUS','#ff2d78');sfxHeal();spawnParticles('⭐',6);toast('⭐ '+COMBO_HEAL+'コンボボーナス! +200');}
+  }
+  if(gCombo>0&&gCombo%COMBO_SHIELD===0){gShield++;showShieldPopup();sfxShield();spawnParticles('🛡️',6);}
+  if(gCombo>0&&gCombo%COMBO_FEVER===0){startFever();spawnParticles('⭐',12);}
+}
+function onMiss(){
+  gTotal++;
+  if(gShield>0){gShield--;gCombo=0;gStreak=0;showShieldBreak();sfxShieldBreak();updateHUD();return;}
+  gCombo=0;gStreak=0;endFever();
+  if(gLifeMode==='on'){gLives--;updateHUD();sfxWrong();shakeHud();if(gLives<=0)setTimeout(()=>gameOver(false),800);}
+  else{updateHUD();sfxWrong();shakeHud();}
+}
+function addXP(xp){
+  gXP+=xp;const need=xpNeeded(gLevel);
+  if(gXP>=need){gXP-=need;gLevel++;showLevelUp();sfxLevelUp();}
+  updateXPBar();
+}
+function xpNeeded(lv){return XP_PER_LEVEL[Math.min(lv-1,XP_PER_LEVEL.length-1)];}
+function updateHUD(){
+  const lv=document.getElementById('hudLives');lv.innerHTML='';
+  if(gLifeMode==='on'){for(let i=0;i<MAX_LIVES;i++){const h=document.createElement('span');h.className='hud-heart'+(i>=gLives?' lost':'');h.textContent='❤️';lv.appendChild(h);}}
+  else{const inf=document.createElement('span');inf.style.cssText='font-family:Orbitron,monospace;font-size:0.7rem;color:var(--nc);text-shadow:0 0 10px var(--nc);letter-spacing:0.05em;';inf.textContent='♾️ NO LIFE';lv.appendChild(inf);}
+  if(gShield>0){const s=document.createElement('span');s.className='hud-shield';s.textContent='🛡️'+gShield;lv.appendChild(s);document.getElementById('timerOv').classList.add('shield-active');}
+  else{document.getElementById('timerOv').classList.remove('shield-active');}
+  document.getElementById('hudScore').textContent=gScore.toLocaleString();
+  const se=document.getElementById('hudStreak');se.textContent=gStreak>0?'🔥 '+gStreak+' STREAK':'';
+  const ce=document.getElementById('hudCombo');
+  const cl=comboLabel(gCombo);
+  let hint='';
+  if(gCombo>=1&&gCombo<COMBO_HEAL)hint=' → '+COMBO_HEAL+'で❤️';
+  else if(gCombo>=COMBO_HEAL&&gCombo<COMBO_SHIELD)hint=' → '+COMBO_SHIELD+'で🛡️';
+  else if(gCombo>=COMBO_SHIELD&&gCombo<COMBO_FEVER)hint=' → '+COMBO_FEVER+'で🔥FEVER';
+  ce.innerHTML=cl?cl+'<span style="font-size:0.5rem;opacity:0.6">'+hint+'</span>':(gCombo>=1?'<span style="font-size:0.55rem;color:var(--td)">'+gCombo+'連続'+hint+'</span>':'');
+  let feverEl=document.getElementById('hudFever');
+  if(!feverEl){feverEl=document.createElement('div');feverEl.id='hudFever';document.querySelector('.xp-wrap').after(feverEl);}
+  if(gFever){feverEl.innerHTML='<div class="fever-badge">🔥 FEVER TIME — SCORE x2 🔥</div><div class="fever-bar"><div class="fever-bar-fill" id="feverFill" style="width:100%"></div></div>';}
+  else{feverEl.innerHTML='';}
+}
+function updateXPBar(){
+  const need=xpNeeded(gLevel);const pct=Math.min(100,(gXP/need)*100);
+  document.getElementById('xpFill').style.width=pct+'%';
+  document.getElementById('xpLvl').textContent='LV '+gLevel;
+  document.getElementById('xpVal').textContent=gXP+' / '+need+' XP';
+}
+function shakeHud(){const h=document.getElementById('hudLives');h.style.animation='none';h.offsetWidth;h.style.animation='shakeX 0.4s ease';}
+function gameOver(timeUp){
+  killTimer();stopSessTimer();endFever();
+  document.getElementById('timerOv').classList.add('hidden');
+  const r=calcRank(gScore,gCorrect,gTotal);
+  document.getElementById('goRank').textContent=r.label;
+  document.getElementById('goRank').style.color=r.color;
+  document.getElementById('goScore').textContent=gScore.toLocaleString();
+  document.getElementById('goStreak').textContent=gMaxStreak;
+  document.getElementById('goCorrect').textContent=gCorrect;
+  document.getElementById('goTotal').textContent=gTotal;
+  document.getElementById('gameoverOv').classList.remove('hidden');
+  sfxGameOver();
+}
+function calcRank(score,correct,total){
+  const acc=total>0?(correct/total):0;const s=score;
+  if(s>=5000&&acc>=0.9)return{label:'★ LEGEND ★',color:'#ffea00'};
+  if(s>=3000&&acc>=0.8)return{label:'SS',color:'#ff2d78'};
+  if(s>=2000&&acc>=0.7)return{label:'S',color:'#bf00ff'};
+  if(s>=1000&&acc>=0.6)return{label:'A',color:'#00f5ff'};
+  if(s>=500)return{label:'B',color:'#39ff14'};
+  if(s>=200)return{label:'C',color:'#e0eaff'};
+  if(s>=50)return{label:'D',color:'#5a6a8a'};
+  return{label:'E',color:'#3a2a3a'};
+}
+
+/* ══════════════════════════════
+   TIMER ENGINE
+══════════════════════════════ */
+function startTimer(){
+  suc();
+  // 問題を生成
+  const shuffledWords = qMode==='random'?[...pool].sort(()=>Math.random()-0.5):[...pool].sort((a,b)=>a.id-b.id);
+  tProbs = shuffledWords.map(v=>makeQuestion(v, pool));
+  tIdx=0; tPaused=false; lastBeepSec=-1;
+  document.getElementById('pauseBtn').textContent='⏸ 停止';
+  syncSettings();
+  // 方向バッジ
+  const badge=document.getElementById('dirBadge');
+  badge.textContent=quizDir==='en'?'🇺🇸 英語 → 日本語':'🇯🇵 日本語 → 英語';
+  badge.className='dir-badge '+(quizDir==='en'?'en':'ja');
+  document.getElementById('timerOv').classList.remove('hidden');
+  startSessTimer();
+  showTQ();
+}
+function closeTimer(){clk();killTimer();stopSessTimer();endFever();document.getElementById('timerOv').classList.add('hidden');}
+
+function showTQ(){
+  tPhase='q';
+  const q=tProbs[tIdx];
+  document.getElementById('tPhase').textContent='❓ QUESTION';
+  document.getElementById('tPhase').className='tphase qp';
+  const tqEl=document.getElementById('tQ');
+  tqEl.textContent=q.q;
+  tqEl.className='tq '+(q.qClass||'');
+  document.getElementById('tCount').textContent=(tIdx+1)+' / '+tProbs.length;
+  document.getElementById('cdNum').className='cdnum qc';
+  document.getElementById('progFill').className='pfill qf';
+  lastBeepSec=-1; qStartTime=performance.now();
+  const correctIdx=q.ans;
+  const opts=q.opts;
+  const labels=['A','B','C','D'];
+  const ta=document.getElementById('tAns');
+  ta.innerHTML=opts.map((opt,i)=>`<button class="topt" data-idx="${i}"><span class="topt-lbl">${labels[i]}</span>${opt}</button>`).join('');
+  let answered=false;
+  ta.querySelectorAll('.topt').forEach(btn=>{
+    btn.onclick=()=>{
+      if(answered||(gLifeMode==='on'&&gLives<=0))return;
+      answered=true; killTimer();
+      const chosen=parseInt(btn.dataset.idx);
+      const elapsed=performance.now()-qStartTime;
+      ta.querySelectorAll('.topt').forEach(b=>{
+        b.disabled=true;
+        if(parseInt(b.dataset.idx)===correctIdx)b.classList.add('opt-correct');
+        if(b===btn&&chosen!==correctIdx)b.classList.add('opt-wrong');
+      });
+      if(chosen===correctIdx){onCorrect(elapsed);}else{onMiss();}
+      if(q.exp){const d=document.createElement('div');d.className='texp-inline';d.textContent='💡 '+q.exp;ta.appendChild(d);}
+      tPhase='a';
+      document.getElementById('tPhase').textContent='💡 ANSWER';
+      document.getElementById('tPhase').className='tphase ap';
+      document.getElementById('cdNum').className='cdnum ac';
+      document.getElementById('progFill').className='pfill af';
+      lastBeepSec=-1;
+      if(gLifeMode==='off'||gLives>0)countdown(tA,nextQ);
+    };
+  });
+  if(!tPaused)countdown(tQ,()=>timeUp());
+}
+
+function timeUp(){
+  const ta=document.getElementById('tAns');const q=tProbs[tIdx];
+  ta.querySelectorAll('.topt').forEach(b=>{b.disabled=true;if(parseInt(b.dataset.idx)===q.ans)b.classList.add('opt-correct');});
+  if(q.exp){const d=document.createElement('div');d.className='texp-inline';d.textContent='💡 '+q.exp;ta.appendChild(d);}
+  onMiss();
+  document.getElementById('tPhase').textContent='💡 ANSWER';document.getElementById('tPhase').className='tphase ap';
+  document.getElementById('cdNum').className='cdnum ac';document.getElementById('progFill').className='pfill af';
+  lastBeepSec=-1;
+  if(gLifeMode==='off'||gLives>0)countdown(tA,nextQ);
+}
+function nextQ(){tIdx=(tIdx+1)%tProbs.length;if(tIdx===0)toast('🔄 一周しました！');showTQ();}
+function countdown(secs,cb){
+  killTimer();const dur=secs*1000,t0=performance.now();
+  function tick(now){
+    const el=Math.max(0,dur-(now-t0));const disp=(el/1000).toFixed(1);
+    const cdEl=document.getElementById('cdNum');cdEl.textContent=disp;
+    document.getElementById('progFill').style.width=(el/dur*100)+'%';
+    if(el<=0&&lastBeepSec!==0){lastBeepSec=0;sfxDone();cdEl.classList.add('warn');document.getElementById('timerOv').classList.add('timesup-flash');setTimeout(()=>{cdEl.classList.remove('warn');document.getElementById('timerOv').classList.remove('timesup-flash');},400);}
+    if(el<=0){cb();return;}
+    tRaf=requestAnimationFrame(tick);
+  }
+  tRaf=requestAnimationFrame(tick);tTout=setTimeout(cb,dur);
+}
+function killTimer(){clearTimeout(tTout);cancelAnimationFrame(tRaf);tTout=null;tRaf=null;}
+function togglePause(){
+  clk();tPaused=!tPaused;const b=document.getElementById('pauseBtn');
+  if(tPaused){killTimer();b.textContent='▶ 再開';}
+  else{b.textContent='⏸ 停止';lastBeepSec=-1;if(tPhase==='q')countdown(tQ,()=>timeUp());else countdown(tA,nextQ);}
+}
+function skipPhase(){clk();killTimer();lastBeepSec=-1;if(tPhase==='q')timeUp();else nextQ();}
+function chTime(t,d){
+  clk();
+  if(t==='q')tQ=Math.round(Math.max(0.1,Math.min(60,tQ+d))*10)/10;
+  else tA=Math.round(Math.max(0.1,Math.min(60,tA+d))*10)/10;
+  syncSettings();
+  if(!tPaused&&!document.getElementById('timerOv').classList.contains('hidden')){killTimer();lastBeepSec=-1;if(tPhase==='q')countdown(tQ,()=>timeUp());else countdown(tA,nextQ);}
+}
+function syncSettings(){
+  ['tsQ','tsQ2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=tQ.toFixed(1);});
+  ['tsA','tsA2'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=tA.toFixed(1);});
+}
+
+/* SESSION TIMER */
+function startSessTimer(){
+  clearTimeout(sessTout);cancelAnimationFrame(sessRaf);
+  if(sessLimit===0){document.getElementById('sessTimerDisp').textContent='';return;}
+  sessRemain=sessLimit*1000;const t0=performance.now();
+  function tick(now){
+    if(tPaused){sessRaf=requestAnimationFrame(tick);return;}
+    const el=Math.max(0,sessRemain-(now-t0));const totalSec=Math.ceil(el/1000);
+    const m=Math.floor(totalSec/60);const s=totalSec%60;
+    const disp=(el===0)?'TIME UP':m+':'+String(s).padStart(2,'0');
+    const el2=document.getElementById('sessTimerDisp');
+    el2.textContent='⏰ '+disp;el2.classList.toggle('warn',totalSec<=30);
+    if(el<=0){sessionEnd();return;}
+    if(totalSec===30)sfxBeepHigh();
+    if(totalSec<=10&&totalSec>0&&s===totalSec)sfxBeepHigh();
+    sessRaf=requestAnimationFrame(tick);
+  }
+  sessRaf=requestAnimationFrame(tick);
+}
+function stopSessTimer(){clearTimeout(sessTout);cancelAnimationFrame(sessRaf);}
+function sessionEnd(){stopSessTimer();document.getElementById('sessTimerDisp').textContent='⏰ TIME UP';setTimeout(()=>{killTimer();gameOver(true);},600);}
+
+function setMode(m){clk();qMode=m;document.getElementById('mR').classList.toggle('active',m==='random');document.getElementById('mS').classList.toggle('active',m==='seq');document.getElementById('mDesc').textContent=m==='random'?'問題をランダムに出題します':'番号順に出題します';}
+function setLifeMode(m){
+  clk();gLifeMode=m;
+  document.getElementById('lifeOn').classList.toggle('active',m==='on');
+  document.getElementById('lifeOff').classList.toggle('active',m==='off');
+  document.getElementById('lifeDesc').textContent=m==='on'?'ライフが0になるとゲームオーバー':'ミスしてもゲームオーバーにならない';
+  if(m==='off'&&sessLimit===0)setSess(300);
+}
+function setSess(secs){
+  clk();
+  if(secs===0&&gLifeMode==='off'){toast('⚠ ライフなしモードでは∞は選べません');return;}
+  sessLimit=secs;
+  document.querySelectorAll('.sess-btn').forEach(b=>{
+    const isInf=b.textContent==='∞';const s=parseInt(b.getAttribute('onclick').match(/\d+/)?.[0]??'0');
+    b.classList.toggle('active',isInf?secs===0:s===secs);
+  });
+}
+
+/* ══════════════════════════════
+   SOUND ENGINE
+══════════════════════════════ */
+let ac=null;
+function ga(){if(!ac)try{ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}if(ac&&ac.state==='suspended')ac.resume();return ac;}
+function tn(f,d,v=0.18,tp='sine'){const a=ga();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=f;o.type=tp;g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(v,a.currentTime+0.01);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+d);o.start();o.stop(a.currentTime+d);}
+function clk(){tn(900,0.06,0.1,'square');}
+function suc(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tn(f,0.18,0.12),i*70));}
+function sfxCorrect(){tn(523,0.08,0.18);setTimeout(()=>tn(784,0.1,0.2),90);setTimeout(()=>tn(1047,0.16,0.18),200);}
+function sfxWrong(){tn(200,0.12,0.22,'sawtooth');setTimeout(()=>tn(150,0.2,0.18,'sawtooth'),120);}
+function sfxBeepHigh(){tn(880,0.09,0.18,'sine');}
+function sfxDone(){const a=ga();if(!a)return;const now=a.currentTime;[0,0.07,0.14].forEach(off=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sawtooth';o.frequency.value=180;g.gain.setValueAtTime(0,now+off);g.gain.linearRampToValueAtTime(0.4,now+off+0.01);g.gain.exponentialRampToValueAtTime(0.001,now+off+0.06);o.start(now+off);o.stop(now+off+0.07);});const o2=a.createOscillator(),g2=a.createGain();o2.connect(g2);g2.connect(a.destination);o2.type='square';o2.frequency.setValueAtTime(90,now+0.18);o2.frequency.exponentialRampToValueAtTime(40,now+0.7);g2.gain.setValueAtTime(0,now+0.18);g2.gain.linearRampToValueAtTime(0.3,now+0.22);g2.gain.exponentialRampToValueAtTime(0.001,now+0.75);o2.start(now+0.18);o2.stop(now+0.76);}
+function sfxLevelUp(){[523,659,784,880,1047,1319].forEach((f,i)=>setTimeout(()=>tn(f,0.2,0.18),i*60));}
+function sfxGameOver(){const a=ga();if(!a)return;const now=a.currentTime;[0,0.3,0.6,0.9].forEach((off,i)=>{const f=[200,180,150,100][i];const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(0,now+off);g.gain.linearRampToValueAtTime(0.3,now+off+0.02);g.gain.exponentialRampToValueAtTime(0.001,now+off+0.28);o.start(now+off);o.stop(now+off+0.3);});}
+function sfxHeal(){[440,554,659,880].forEach((f,i)=>setTimeout(()=>tn(f,0.2,0.15),i*80));}
+function sfxShield(){const a=ga();if(!a)return;const now=a.currentTime;[800,1000,1200].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0,now+i*0.06);g.gain.linearRampToValueAtTime(0.2,now+i*0.06+0.01);g.gain.exponentialRampToValueAtTime(0.001,now+i*0.06+0.15);o.start(now+i*0.06);o.stop(now+i*0.06+0.16);});}
+function sfxShieldBreak(){const a=ga();if(!a)return;const now=a.currentTime;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sawtooth';o.frequency.setValueAtTime(1200,now);o.frequency.exponentialRampToValueAtTime(200,now+0.3);g.gain.setValueAtTime(0.25,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.35);o.start(now);o.stop(now+0.36);}
+function sfxFever(){[523,659,784,1047,1319,1568].forEach((f,i)=>setTimeout(()=>tn(f,0.25,0.2),i*50));setTimeout(()=>{[1568,1319,1568].forEach((f,i)=>setTimeout(()=>tn(f,0.15,0.15),i*100));},350);}
+
+/* ══════════════════════════════
+   VISUALS
+══════════════════════════════ */
+function showComboPopup(combo,mult){
+  const el=document.createElement('div');el.className='combo-popup';
+  el.style.fontSize=Math.min(1.2+combo*0.06,2.4)+'rem';
+  el.style.color=mult>=5?'#ffea00':mult>=3?'#ff2d78':mult>=2?'#bf00ff':'#00f5ff';
+  el.style.textShadow='0 0 30px currentColor';
+  el.textContent=combo+' COMBO!';document.body.appendChild(el);setTimeout(()=>el.remove(),900);
+}
+function showScorePopup(txt,color){
+  const el=document.createElement('div');el.className='score-popup';
+  el.style.cssText=`left:${40+Math.random()*40}%;top:${30+Math.random()*20}%;font-size:${0.9+Math.random()*0.4}rem;color:${color};text-shadow:0 0 12px ${color};`;
+  el.textContent=txt;document.body.appendChild(el);setTimeout(()=>el.remove(),1200);
+}
+function showLevelUp(){
+  const el=document.createElement('div');el.className='lvup-overlay';
+  el.innerHTML=`<div class="lvup-text">LEVEL UP!<br>LV ${gLevel}</div>`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1800);
+}
+function showLifeRecover(){
+  const el=document.createElement('div');el.className='life-recover-popup';
+  el.innerHTML='<span class="lr-icon">❤️‍🔥</span><span class="lr-text">LIFE RECOVER!</span>';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1600);
+  toast('❤️ '+COMBO_HEAL+'コンボでライフ回復!');
+}
+function showShieldPopup(){
+  const el=document.createElement('div');el.className='shield-popup';
+  el.innerHTML='<span class="sp-icon">🛡️</span><span class="sp-text">SHIELD GET!</span>';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1600);toast('🛡️ シールド獲得！');
+}
+function showShieldBreak(){
+  const el=document.getElementById('qcard');el.classList.add('shield-break');setTimeout(()=>el.classList.remove('shield-break'),600);
+  showScorePopup('🛡️ BLOCKED!','#00f5ff');toast('🛡️ シールドがミスを防いだ！');
+}
+function startFever(){
+  gFever=true;gFeverEnd=performance.now()+FEVER_DURATION;
+  document.getElementById('timerOv').classList.add('fever-active');
+  const el=document.createElement('div');el.className='fever-popup';
+  el.innerHTML='<span class="fp-icon">🔥⚡🔥</span><span class="fp-text">FEVER TIME!</span><span class="fp-sub">10秒間スコア2倍！</span>';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),2000);sfxFever();updateHUD();
+  cancelAnimationFrame(gFeverRaf);
+  function tickFever(now){
+    const remain=Math.max(0,gFeverEnd-now);const pct=(remain/FEVER_DURATION)*100;
+    const fill=document.getElementById('feverFill');if(fill)fill.style.width=pct+'%';
+    if(remain<=0){endFever();return;}
+    gFeverRaf=requestAnimationFrame(tickFever);
+  }
+  gFeverRaf=requestAnimationFrame(tickFever);
+}
+function endFever(){
+  if(!gFever)return;gFever=false;cancelAnimationFrame(gFeverRaf);
+  document.getElementById('timerOv').classList.remove('fever-active');
+  const feverEl=document.getElementById('hudFever');if(feverEl)feverEl.innerHTML='';
+}
+function spawnParticles(emoji,count){
+  const cx=window.innerWidth/2,cy=window.innerHeight*0.4;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');el.className='combo-particle';
+    const angle=Math.random()*Math.PI*2;const dist=60+Math.random()*100;
+    el.style.cssText=`left:${cx}px;top:${cy}px;--px:${Math.cos(angle)*dist}px;--py:${Math.sin(angle)*dist}px;animation-delay:${Math.random()*0.2}s;`;
+    el.textContent=emoji;document.body.appendChild(el);setTimeout(()=>el.remove(),1200);
+  }
+}
+
+/* TOAST */
+let tT;
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),2500);}
+
+/* INJECT KEYFRAMES */
+const ks=document.createElement('style');
+ks.textContent='@keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}@keyframes heartRecover{0%{transform:scale(1)}50%{transform:scale(1.6)}100%{transform:scale(1)}}';
+document.head.appendChild(ks);
+
+document.addEventListener('click',()=>{if(ac&&ac.state==='suspended')ac.resume();},{once:true});
+document.addEventListener('touchend',()=>{const ae=document.activeElement;if(ae&&ae.tagName==='BUTTON')ae.blur();},{passive:true});
+</script>
+</body>
+</html>
