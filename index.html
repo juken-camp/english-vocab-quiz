@@ -227,6 +227,22 @@ input,select{font-size:16px;}
     <div class="sel-badge">選択中: <span id="selCount">0</span> カテゴリ（<span id="selWordCount">0</span>語）</div>
     <div class="cat-grid" id="catGrid"></div>
 
+    <!-- カスタム番号範囲（番号範囲別のときのみ表示） -->
+    <div id="customRangeBox" class="hidden" style="background:var(--b1);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.6rem;letter-spacing:0.15em;color:var(--nc);text-align:center;margin-bottom:10px;text-shadow:0 0 8px var(--nc);">✏ CUSTOM RANGE</div>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:0.65rem;color:var(--td);">No.</span>
+          <input id="customFrom" type="number" min="1" max="600" placeholder="1" style="width:62px;background:var(--b2);border:1px solid rgba(0,245,255,0.25);border-radius:6px;color:var(--tm);padding:6px 8px;font-family:'Orbitron',monospace;font-size:0.8rem;text-align:center;">
+          <span style="font-size:0.65rem;color:var(--td);">〜</span>
+          <span style="font-size:0.65rem;color:var(--td);">No.</span>
+          <input id="customTo" type="number" min="1" max="600" placeholder="600" style="width:62px;background:var(--b2);border:1px solid rgba(0,245,255,0.25);border-radius:6px;color:var(--tm);padding:6px 8px;font-family:'Orbitron',monospace;font-size:0.8rem;text-align:center;">
+        </div>
+        <button onclick="applyCustomRange()" style="background:var(--nc);border:none;border-radius:7px;color:#000;padding:7px 14px;font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;cursor:pointer;letter-spacing:0.05em;box-shadow:0 0 12px rgba(0,245,255,0.3);">追加</button>
+      </div>
+      <div id="customRangeInfo" style="font-size:0.62rem;color:var(--td);text-align:center;margin-top:6px;min-height:1em;"></div>
+    </div>
+
     <!-- 出題方向 -->
     <div class="ptitle" style="margin-top:10px;margin-bottom:8px;">▶ QUIZ DIRECTION</div>
     <div class="dir-row">
@@ -1076,14 +1092,16 @@ function goHome(){
    CATEGORY NAVIGATION
 ══════════════════════════════ */
 function openCat(mode){
-  clk(); catMode=mode; selCatIds.clear();
+  clk(); catMode=mode; selCatIds.clear(); customRanges=[];
   resetCatScreenState();
   if(mode==='pos'){
     document.getElementById('catLogo').textContent='📚 品詞別';
     document.getElementById('catLogoSub').textContent='SELECT BY PART OF SPEECH';
+    document.getElementById('customRangeBox').classList.add('hidden');
   } else {
     document.getElementById('catLogo').textContent='🔢 番号範囲別';
     document.getElementById('catLogoSub').textContent='SELECT BY NUMBER RANGE';
+    document.getElementById('customRangeBox').classList.remove('hidden');
   }
   renderCatGrid();
   show('catScreen');
@@ -1162,9 +1180,58 @@ function updateSelCount(){
     const item=def.items.find(c=>c.id===id);
     return acc+(item?VOCAB.filter(item.filter).length:0);
   },0);
-  document.getElementById('selCount').textContent=selCatIds.size;
-  document.getElementById('selWordCount').textContent=wordCount;
-  document.getElementById('decideBtn').disabled=(selCatIds.size===0);
+  const customCount=customRanges.reduce((acc,r)=>acc+VOCAB.filter(v=>v.id>=r.from&&v.id<=r.to).length,0);
+  document.getElementById('selCount').textContent=selCatIds.size+customRanges.length;
+  document.getElementById('selWordCount').textContent=wordCount+customCount;
+  document.getElementById('decideBtn').disabled=(selCatIds.size===0 && customRanges.length===0);
+}
+
+/* ══════════════════════════════
+   CUSTOM RANGE
+══════════════════════════════ */
+let customRanges = []; // [{from, to, label}]
+
+function applyCustomRange(){
+  clk();
+  const fromVal = parseInt(document.getElementById('customFrom').value);
+  const toVal   = parseInt(document.getElementById('customTo').value);
+  const info    = document.getElementById('customRangeInfo');
+  if(isNaN(fromVal)||isNaN(toVal)){info.style.color='var(--np)';info.textContent='⚠ 数字を入力してください';return;}
+  const from = Math.max(1, Math.min(600, fromVal));
+  const to   = Math.max(from, Math.min(600, toVal));
+  const cnt  = VOCAB.filter(v=>v.id>=from&&v.id<=to).length;
+  if(cnt===0){info.style.color='var(--np)';info.textContent='⚠ その範囲に単語がありません';return;}
+  // 重複チェック
+  const label = `No.${from}〜${to}`;
+  if(customRanges.find(r=>r.from===from&&r.to===to)){info.style.color='var(--np)';info.textContent='⚠ すでに追加済みです';return;}
+  customRanges.push({from, to, label});
+  info.style.color='var(--ng)';info.textContent=`✓ ${label} を追加（${cnt}語）`;
+  document.getElementById('customFrom').value='';
+  document.getElementById('customTo').value='';
+  renderCustomRangeTags();
+  updateSelCount();
+}
+
+function removeCustomRange(idx){
+  clk(); customRanges.splice(idx,1);
+  renderCustomRangeTags(); updateSelCount();
+  document.getElementById('customRangeInfo').textContent='';
+}
+
+function renderCustomRangeTags(){
+  let box = document.getElementById('customRangeTags');
+  if(!box){
+    box=document.createElement('div');box.id='customRangeTags';
+    box.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;';
+    document.getElementById('customRangeInfo').after(box);
+  }
+  box.innerHTML='';
+  customRanges.forEach((r,i)=>{
+    const tag=document.createElement('span');
+    tag.style.cssText='background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.35);border-radius:20px;padding:3px 10px;font-size:0.65rem;font-family:"Orbitron",monospace;color:var(--nc);display:flex;align-items:center;gap:6px;';
+    tag.innerHTML=`${r.label} <button onclick="removeCustomRange(${i})" style="background:none;border:none;color:var(--np);cursor:pointer;font-size:0.75rem;padding:0;line-height:1;">✕</button>`;
+    box.appendChild(tag);
+  });
 }
 
 /* ══════════════════════════════
@@ -1185,6 +1252,9 @@ function buildPool(){
   selCatIds.forEach(id=>{
     const item=def.items.find(c=>c.id===id);
     if(item) VOCAB.filter(item.filter).forEach(v=>wordSet.add(v));
+  });
+  customRanges.forEach(r=>{
+    VOCAB.filter(v=>v.id>=r.from&&v.id<=r.to).forEach(v=>wordSet.add(v));
   });
   return [...wordSet];
 }
