@@ -125,7 +125,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .pfill.qf{background:linear-gradient(90deg,var(--nu),var(--nc));box-shadow:0 0 8px var(--nu);}
 .pfill.af{background:linear-gradient(90deg,var(--ng),var(--nc));box-shadow:0 0 8px var(--ng);}
 /* 問題 */
-.tq{font-size:1.1rem;font-weight:700;text-align:center;padding:14px;background:var(--b1);border-radius:12px;border:1px solid rgba(191,0,255,0.2);margin-bottom:9px;line-height:1.6;letter-spacing:0.04em;}
+.tq{font-size:1.1rem;font-weight:700;text-align:center;padding:14px;background:var(--b1);border-radius:12px;border:1px solid rgba(191,0,255,0.2);margin-bottom:9px;line-height:1.6;letter-spacing:0.04em;cursor:pointer;position:relative;transition:border-color 0.2s,box-shadow 0.2s;}
+.tq:active{transform:scale(0.98);}
+.tq.speaking{border-color:var(--ny)!important;box-shadow:0 0 18px rgba(255,234,0,0.35)!important;}
+.tq-speaker{position:absolute;top:7px;right:10px;font-size:0.85rem;opacity:0.45;transition:opacity 0.2s;}
+.tq:hover .tq-speaker,.tq.speaking .tq-speaker{opacity:1;}
 .tq.en-q{font-size:1.3rem;letter-spacing:0.06em;color:var(--nc);text-shadow:0 0 12px rgba(0,245,255,0.3);}
 .tq.ja-q{font-size:1.0rem;color:var(--np);text-shadow:0 0 10px rgba(255,45,120,0.25);}
 .tans{display:flex;flex-direction:column;gap:6px;}
@@ -201,10 +205,31 @@ input,select{font-size:16px;}
 </head>
 <body>
 
-<!-- ═══ MAIN ═══ -->
+<!-- ═══ SUBJECT SELECT (TOP) ═══ -->
 <div id="mainScreen" class="screen">
   <div class="logo">VOCAB QUIZ</div>
-  <div class="logo-sub">ENGLISH WORDS — NEON MODE</div>
+  <div class="logo-sub">ENGLISH MASTER — NEON MODE</div>
+  <div class="panel">
+    <div class="ptitle">▶ どちらを学習しますか？</div>
+    <div class="subj-grid">
+      <button class="subj-btn" onclick="openSubject('word')">
+        <span class="subj-icon">🔤</span>
+        <span>英単語</span>
+        <span style="font-size:0.6rem;color:var(--td);margin-top:2px;">600語</span>
+      </button>
+      <button class="subj-btn" onclick="openSubject('idiom')">
+        <span class="subj-icon">💬</span>
+        <span>英熟語</span>
+        <span style="font-size:0.6rem;color:var(--td);margin-top:2px;">300語</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WORD MENU ═══ -->
+<div id="wordScreen" class="screen hidden">
+  <div class="logo">英単語</div>
+  <div class="logo-sub">ENGLISH WORDS — 600</div>
   <div class="panel">
     <div class="ptitle">▶ SELECT CATEGORY</div>
     <div class="subj-grid">
@@ -214,8 +239,23 @@ input,select{font-size:16px;}
   </div>
   <div class="panel">
     <div class="ptitle">▶ 全600語から</div>
-    <button class="nbtn cy" onclick="openAll()" style="width:100%;padding:14px;font-size:0.8rem;">⚡ ALL 600 WORDS</button>
+    <button class="nbtn cy" onclick="openAll('word')" style="width:100%;padding:14px;font-size:0.8rem;">⚡ ALL 600 WORDS</button>
   </div>
+  <button class="back-btn" onclick="goHome()">← 教科選択へ戻る</button>
+</div>
+
+<!-- ═══ IDIOM MENU ═══ -->
+<div id="idiomScreen" class="screen hidden">
+  <div class="logo">英熟語</div>
+  <div class="logo-sub">ENGLISH IDIOMS — 300</div>
+  <div class="panel">
+    <div class="ptitle">▶ SELECT CATEGORY</div>
+    <div class="subj-grid">
+      <button class="subj-btn" onclick="openCat('idiom_range')"><span class="subj-icon">🔢</span><span>番号範囲別</span></button>
+      <button class="subj-btn" onclick="openAll('idiom')"><span class="subj-icon">⚡</span><span>全300語</span></button>
+    </div>
+  </div>
+  <button class="back-btn" onclick="goHome()">← 教科選択へ戻る</button>
 </div>
 
 <!-- ═══ CATEGORY SELECT ═══ -->
@@ -307,7 +347,7 @@ input,select{font-size:16px;}
       <button class="sess-btn" onclick="setSess(0)">∞</button>
     </div>
     <button class="nbtn pu pulse" id="decideBtn" disabled onclick="decideAndStart()" style="width:100%;padding:16px;font-size:0.85rem;margin-top:10px;">⏱ DECIDE &amp; START</button>
-    <div style="text-align:center"><button class="back-btn" onclick="goHome()">← 戻る</button></div>
+    <div style="text-align:center"><button class="back-btn" onclick="goBackToSubject()">← 戻る</button></div>
   </div>
 </div>
 
@@ -339,7 +379,7 @@ input,select{font-size:16px;}
       </div>
     </div>
     <div class="qcard-mid">
-      <div class="tq" id="tQ">—</div>
+      <div class="tq" id="tQ" onclick="speak(this.dataset.word)" title="タップして読み上げ">—<span class="tq-speaker">🔊</span></div>
       <div class="tans" id="tAns"></div>
     </div>
     <div class="qcard-bot">
@@ -1012,7 +1052,331 @@ const VOCAB = [
   {id:597,w:"terrible",p:"副",m:"恐ろしい"},
   {id:598,w:"moreover",p:"副",m:"さらに"},
   {id:599,w:"except",p:"前",m:"〜を除けば"},
-  {id:600,w:"besides",p:"前",m:"に加えて"}
+  {id:600,w:"besides",p:"前",m:"に加えて"},
+
+// ── 英熟語 300 ──────────────────────────────────────────
+// A
+{id:601,w:"above all",p:"熟",m:"とりわけ・何よりも"},
+{id:602,w:"a good [great] deal of ~",p:"熟",m:"多量の~"},
+{id:603,w:"according to ~",p:"熟",m:"~によれば"},
+{id:604,w:"account for ~",p:"熟",m:"~を説明する"},
+{id:605,w:"accuse A of B",p:"熟",m:"BでAを非難する"},
+{id:606,w:"after all",p:"熟",m:"結局は"},
+{id:607,w:"all at once",p:"熟",m:"突然"},
+{id:608,w:"anything but ~",p:"熟",m:"けっして~でない"},
+{id:609,w:"as ~ as possible",p:"熟",m:"できる限り~"},
+{id:610,w:"as a matter of fact",p:"熟",m:"実を言うと"},
+{id:611,w:"as a result of ~",p:"熟",m:"~の結果として"},
+{id:612,w:"as far as ~",p:"熟",m:"~する限り"},
+{id:613,w:"as follows",p:"熟",m:"次の通り"},
+{id:614,w:"As for ~",p:"熟",m:"~に関しては"},
+{id:615,w:"as good as ~",p:"熟",m:"~も同然、ほとんど"},
+{id:616,w:"as if",p:"熟",m:"まるで…（である）かのように"},
+{id:617,w:"as is often the case",p:"熟",m:"（~には）よくあることだが"},
+{id:618,w:"as it were",p:"熟",m:"いわば"},
+{id:619,w:"ask A a favor",p:"熟",m:"Aに頼みごとをする"},
+{id:620,w:"as long as ~",p:"熟",m:"~する限り"},
+{id:621,w:"as to ~",p:"熟",m:"~に関しては"},
+{id:622,w:"as well",p:"熟",m:"（その上）…もまた"},
+{id:623,w:"A as well as B",p:"熟",m:"BばかりでなくAも"},
+{id:624,w:"at a loss",p:"熟",m:"途方に暮れて"},
+{id:625,w:"at any rate",p:"熟",m:"とにかく"},
+{id:626,w:"at first",p:"熟",m:"最初は"},
+{id:627,w:"at hand",p:"熟",m:"近くに"},
+{id:628,w:"at least",p:"熟",m:"少なくとも"},
+{id:629,w:"at once",p:"熟",m:"すぐに・同時に"},
+{id:630,w:"at the mercy of",p:"熟",m:"~のなすがままに"},
+// B
+{id:631,w:"be about to ~",p:"熟",m:"（まさに）~しようとしている"},
+{id:632,w:"be absorbed in ~",p:"熟",m:"~に熱中する・~に夢中になる"},
+{id:633,w:"be anxious about ~",p:"熟",m:"~を心配する"},
+{id:634,w:"be anxious for ~",p:"熟",m:"~を切望している"},
+{id:635,w:"be apt to ~",p:"熟",m:"~する傾向がある"},
+{id:636,w:"be ashamed of ~",p:"熟",m:"~を恥じる"},
+{id:637,w:"be associated with A",p:"熟",m:"Aを連想させる・Aと関連がある"},
+{id:638,w:"be aware of ~",p:"熟",m:"~に気づいている・~を知っている"},
+{id:639,w:"be capable of ~ing",p:"熟",m:"~できる"},
+{id:640,w:"be concerned with ~",p:"熟",m:"~に関係している"},
+{id:641,w:"be equal to ~",p:"熟",m:"~に匹敵する"},
+{id:642,w:"be familiar with ~",p:"熟",m:"~をよく知っている"},
+{id:643,w:"be fed up with ~",p:"熟",m:"~に飽き飽きしている・うんざりしている"},
+{id:644,w:"be in charge of ~",p:"熟",m:"~を管理している"},
+{id:645,w:"be indifferent to ~",p:"熟",m:"~に無関心だ"},
+{id:646,w:"be independent of ~",p:"熟",m:"~から独立している"},
+{id:647,w:"be likely to ~",p:"熟",m:"~しそうだ"},
+{id:648,w:"be obliged to ~",p:"熟",m:"~せざるを得ない"},
+{id:649,w:"be responsible for ~",p:"熟",m:"~に対して責任がある"},
+{id:650,w:"be satisfied with ~",p:"熟",m:"~に満足している"},
+{id:651,w:"be similar to ~",p:"熟",m:"~と似ている"},
+{id:652,w:"be subject to ~",p:"熟",m:"~（の支配）を受けやすい・~の対象になる"},
+{id:653,w:"be superior to ~",p:"熟",m:"~よりすぐれている"},
+{id:654,w:"be supposed to ~",p:"熟",m:"~する予定になっている"},
+{id:655,w:"be sure to ~",p:"熟",m:"きっと（必ず）~する"},
+{id:656,w:"be tired of ~",p:"熟",m:"~に飽きた・うんざりしている"},
+{id:657,w:"be true of",p:"熟",m:"~に当てはまる"},
+{id:658,w:"be used to ~",p:"熟",m:"~に慣れている"},
+{id:659,w:"be willing to ~",p:"熟",m:"~するのをいとわない"},
+{id:660,w:"because of ~",p:"熟",m:"~のために"},
+{id:661,w:"before long",p:"熟",m:"そのうち／まもなく"},
+{id:662,w:"believe in ~",p:"熟",m:"（~の存在、~の価値を）信じる"},
+{id:663,w:"beside oneself with ~",p:"熟",m:"~にわれを忘れて"},
+{id:664,w:"beyond description",p:"熟",m:"（言葉では）表現できないほど"},
+{id:665,w:"blame ~ for",p:"熟",m:"…のことで~を非難する"},
+{id:666,w:"boast of ~",p:"熟",m:"~を自慢する"},
+{id:667,w:"break down",p:"熟",m:"故障する"},
+{id:668,w:"break out",p:"熟",m:"（火事、戦争、暴動などが）勃発する"},
+{id:669,w:"bring about ~",p:"熟",m:"~を引き起こす"},
+{id:670,w:"bring up ~",p:"熟",m:"~を育てる"},
+{id:671,w:"burst into laughter",p:"熟",m:"どっと（突然）笑い出す"},
+{id:672,w:"but for ~",p:"熟",m:"~がなければ"},
+{id:673,w:"by accident",p:"熟",m:"偶然"},
+{id:674,w:"by degrees",p:"熟",m:"徐々に・次第に"},
+{id:675,w:"by virtue of ~",p:"熟",m:"~のおかげで"},
+{id:676,w:"by means of ~",p:"熟",m:"~によって"},
+{id:677,w:"by nature",p:"熟",m:"生まれつき"},
+{id:678,w:"by no means",p:"熟",m:"けっして~ない"},
+{id:679,w:"by oneself",p:"熟",m:"ひとりで"},
+{id:680,w:"by the time S V",p:"熟",m:"SがVする時までに"},
+{id:681,w:"by way of ~",p:"熟",m:"~経由で・~として"},
+// C
+{id:682,w:"call for ~",p:"熟",m:"~を必要とする"},
+{id:683,w:"call off",p:"熟",m:"~を中止する"},
+{id:684,w:"call on ~",p:"熟",m:"~を訪問する"},
+{id:685,w:"can afford to ~",p:"熟",m:"~する余裕がある"},
+{id:686,w:"cannot but ~",p:"熟",m:"~せざるを得ない"},
+{id:687,w:"cannot help ~ing",p:"熟",m:"~せざるを得ない"},
+{id:688,w:"care for ~",p:"熟",m:"~の世話をする"},
+{id:689,w:"carry out",p:"熟",m:"実行する"},
+{id:690,w:"catch up with ~",p:"熟",m:"~に追いつく"},
+{id:691,w:"cling to ~",p:"熟",m:"~に執着する"},
+{id:692,w:"come out",p:"熟",m:"（花が）咲く・出版される"},
+{id:693,w:"come across ~",p:"熟",m:"~に（偶然）出会う"},
+{id:694,w:"come up with",p:"熟",m:"考えつく・思いつく"},
+{id:695,w:"compare A with B",p:"熟",m:"AとBを比較する"},
+{id:696,w:"consist in ~",p:"熟",m:"~にある"},
+{id:697,w:"consist of ~",p:"熟",m:"~から成り立つ"},
+{id:698,w:"contribute to ~",p:"熟",m:"~の一因となる"},
+{id:699,w:"cope with ~",p:"熟",m:"~を（うまく）処理する"},
+{id:700,w:"couldn't be better",p:"熟",m:"最高だ"},
+{id:701,w:"count on",p:"熟",m:"~に頼る・~を当てにする"},
+{id:702,w:"cure A of B",p:"熟",m:"AのBを治す"},
+// D
+{id:703,w:"deal with",p:"熟",m:"対処する"},
+{id:704,w:"depend on ~",p:"熟",m:"~に頼る"},
+{id:705,w:"devote oneself to ~",p:"熟",m:"~に専念する"},
+{id:706,w:"die of ~",p:"熟",m:"~で死ぬ"},
+{id:707,w:"dispense with ~",p:"熟",m:"~なしで済ます"},
+{id:708,w:"do away with ~",p:"熟",m:"~を廃止する"},
+{id:709,w:"do ~ good",p:"熟",m:"~に益をもたらす"},
+{id:710,w:"do without ~",p:"熟",m:"~なしですます"},
+{id:711,w:"due to ~",p:"熟",m:"~のために（原因）"},
+// E
+{id:712,w:"even if",p:"熟",m:"たとえ…だとしても"},
+// F
+{id:713,w:"far from ~",p:"熟",m:"すこしも~でない"},
+{id:714,w:"feel like ~ing",p:"熟",m:"~したい気がする"},
+{id:715,w:"figure out ~",p:"熟",m:"~を理解する"},
+{id:716,w:"find fault with",p:"熟",m:"文句を言う・けちをつける"},
+{id:717,w:"find out",p:"熟",m:"~を見つけ出す"},
+{id:718,w:"first of all",p:"熟",m:"まずはじめに"},
+{id:719,w:"for a while",p:"熟",m:"しばらくの間"},
+{id:720,w:"for good",p:"熟",m:"ずっと・永久に"},
+{id:721,w:"for instance",p:"熟",m:"たとえば"},
+{id:722,w:"for the first time",p:"熟",m:"はじめて"},
+{id:723,w:"for the sake of ~",p:"熟",m:"~のために"},
+{id:724,w:"free from ~",p:"熟",m:"~がない"},
+// G
+{id:725,w:"get along with ~",p:"熟",m:"（~と）仲よくやっていく"},
+{id:726,w:"get in touch with ~",p:"熟",m:"~と接触を取る・保つ"},
+{id:727,w:"get over",p:"熟",m:"打ち勝つ・克服する"},
+{id:728,w:"get rid of ~",p:"熟",m:"~を取り除く"},
+{id:729,w:"give in to ~",p:"熟",m:"（~に）屈服する"},
+{id:730,w:"give off",p:"熟",m:"~を発する"},
+{id:731,w:"give rise to ~",p:"熟",m:"~を引き起こす・生む"},
+{id:732,w:"go on ~ing",p:"熟",m:"~し続ける"},
+{id:733,w:"go over ~",p:"熟",m:"~を調べる・目を通す"},
+{id:734,w:"go so far as to ~",p:"熟",m:"~しさえする（~まですする）"},
+{id:735,w:"go through ~",p:"熟",m:"~を経験する"},
+// H
+{id:736,w:"hand in ~",p:"熟",m:"~を提出する"},
+{id:737,w:"happen to ~",p:"熟",m:"偶然~する"},
+{id:738,w:"have difficulty ~ing",p:"熟",m:"~するのが困難だ"},
+{id:739,w:"have nothing to do with",p:"熟",m:"~と無関係である"},
+{id:740,w:"hear from ~",p:"熟",m:"~から便り（連絡）がある"},
+{id:741,w:"help oneself to ~",p:"熟",m:"自分で（自由に）とって食べる"},
+{id:742,w:"hold on to",p:"熟",m:"しがみつく／固守する"},
+{id:743,w:"How come ~?",p:"熟",m:"どうして~?"},
+// I
+{id:744,w:"if any",p:"熟",m:"たとえあるとしても／もしあれば"},
+{id:745,w:"if anything",p:"熟",m:"どちらかと言えば"},
+{id:746,w:"If it were not for ~",p:"熟",m:"もし~がなければ"},
+{id:747,w:"in a sense",p:"熟",m:"ある意味では"},
+{id:748,w:"in addition to ~",p:"熟",m:"~に加えて"},
+{id:749,w:"in advance",p:"熟",m:"前もって"},
+{id:750,w:"in case",p:"熟",m:"…するといけないから"},
+{id:751,w:"in common with ~",p:"熟",m:"（~と）共通に"},
+{id:752,w:"in demand",p:"熟",m:"需要があって・必要とされて"},
+{id:753,w:"in detail",p:"熟",m:"詳細に"},
+{id:754,w:"in fact",p:"熟",m:"実際は"},
+{id:755,w:"in favor of ~",p:"熟",m:"~に賛成して"},
+{id:756,w:"in general",p:"熟",m:"一般に"},
+{id:757,w:"in honor of ~",p:"熟",m:"~に敬意を表して"},
+{id:758,w:"in itself",p:"熟",m:"それ自体では"},
+{id:759,w:"in order to ~",p:"熟",m:"~するために（目的）"},
+{id:760,w:"in other words",p:"熟",m:"言い換えれば"},
+{id:761,w:"in particular",p:"熟",m:"特に"},
+{id:762,w:"in regard to ~",p:"熟",m:"~に関しては"},
+{id:763,w:"in short",p:"熟",m:"つまり・要するに"},
+{id:764,w:"in spite of ~",p:"熟",m:"~にもかかわらず"},
+{id:765,w:"in terms of ~",p:"熟",m:"~の（観）点では"},
+{id:766,w:"in the future",p:"熟",m:"将来は・今後は"},
+{id:767,w:"in the long run",p:"熟",m:"結局は"},
+{id:768,w:"in the way",p:"熟",m:"邪魔な"},
+{id:769,w:"in turn",p:"熟",m:"順番に"},
+{id:770,w:"in vain",p:"熟",m:"むだに"},
+{id:771,w:"inform A of B",p:"熟",m:"AにBを知らせる"},
+{id:772,w:"insist on ~",p:"熟",m:"~を主張する"},
+{id:773,w:"instead of ~",p:"熟",m:"~の代わりに"},
+{id:774,w:"It goes without saying that",p:"熟",m:"…なのは言うまでもない"},
+{id:775,w:"It is no use ~ing",p:"熟",m:"~してもむだである"},
+{id:776,w:"It is not until ~ that",p:"熟",m:"~して初めて…する"},
+{id:777,w:"It is worth while to ~",p:"熟",m:"~する価値がある"},
+// K
+{id:778,w:"keep A from ~ing",p:"熟",m:"AをBから避ける／AをBしないようにする"},
+{id:779,w:"keep up with ~",p:"熟",m:"~に遅れずについていく"},
+{id:780,w:"know better than to ~",p:"熟",m:"~するほどばかではない"},
+// L
+{id:781,w:"lay off ~",p:"熟",m:"~を（一時的に）解雇する"},
+{id:782,w:"learn ~ by heart",p:"熟",m:"~を暗記する"},
+{id:783,w:"let alone ~",p:"熟",m:"~はいうまでもなく・まして~なおさらだ"},
+{id:784,w:"let ~ down",p:"熟",m:"~を失望させる"},
+{id:785,w:"live on ~",p:"熟",m:"~を常食とする"},
+{id:786,w:"live up to ~",p:"熟",m:"~の期待に添う"},
+{id:787,w:"long for ~",p:"熟",m:"~を切望する"},
+{id:788,w:"look for ~",p:"熟",m:"~を探す"},
+{id:789,w:"look forward to ~",p:"熟",m:"~を楽しみに待つ"},
+{id:790,w:"look into ~",p:"熟",m:"~を調べる・調査する"},
+{id:791,w:"look up to ~",p:"熟",m:"~を尊敬する"},
+// M
+{id:792,w:"make it a rule to ~",p:"熟",m:"~することにしている"},
+{id:793,w:"make out ~",p:"熟",m:"~を理解する"},
+{id:794,w:"make progress",p:"熟",m:"進歩する"},
+{id:795,w:"make sense",p:"熟",m:"意味をなす"},
+{id:796,w:"make the best of ~",p:"熟",m:"~を最大限に利用する"},
+{id:797,w:"make up one's mind",p:"熟",m:"決心する"},
+{id:798,w:"make use of ~",p:"熟",m:"~を利用する"},
+{id:799,w:"may as well ~",p:"熟",m:"（…するくらいなら）~したほうがよい"},
+{id:800,w:"may well ~",p:"熟",m:"~するのももっともだ"},
+{id:801,w:"more or less",p:"熟",m:"多かれ少なかれ"},
+// N
+{id:802,w:"never fail to ~",p:"熟",m:"必ず~する"},
+{id:803,w:"never ~ without ~ing",p:"熟",m:"…すると必ず~する"},
+{id:804,w:"next to ~",p:"熟",m:"~の隣に・ほとんど~"},
+{id:805,w:"no longer ~",p:"熟",m:"もはや~ではない"},
+{id:806,w:"no more than ~",p:"熟",m:"~だけ"},
+{id:807,w:"no more ~ than",p:"熟",m:"…でないのと同様に~でない"},
+{id:808,w:"no sooner ~ than",p:"熟",m:"~するやいなや…"},
+{id:809,w:"not a few",p:"熟",m:"少なからぬ"},
+{id:810,w:"not at all",p:"熟",m:"まったく…ない"},
+{id:811,w:"nothing but",p:"熟",m:"~にすぎない"},
+{id:812,w:"not more than ~",p:"熟",m:"（最大）せいぜい"},
+{id:813,w:"not only A but also B",p:"熟",m:"AだけでなくBも"},
+{id:814,w:"not so much A as B",p:"熟",m:"AというよりはむしろB"},
+// O
+{id:815,w:"on earth",p:"熟",m:"一体（全体）"},
+{id:816,w:"on duty / off duty",p:"熟",m:"勤務中で／非番で"},
+{id:817,w:"on occasion",p:"熟",m:"ときおり"},
+{id:818,w:"on one's own",p:"熟",m:"（すべて）独力で"},
+{id:819,w:"on one's way to ~",p:"熟",m:"（~への）途中で"},
+{id:820,w:"on purpose",p:"熟",m:"故意に"},
+{id:821,w:"on the contrary",p:"熟",m:"それどころか（反対に）"},
+{id:822,w:"on the other hand",p:"熟",m:"他方（では）"},
+{id:823,w:"on time",p:"熟",m:"時間通り（定刻）に"},
+{id:824,w:"out of ~",p:"熟",m:"~の範囲外で"},
+{id:825,w:"out of date",p:"熟",m:"時代遅れの・古い"},
+{id:826,w:"out of order",p:"熟",m:"故障している"},
+{id:827,w:"owe ~ to",p:"熟",m:"…は~のおかげである"},
+{id:828,w:"owing to ~",p:"熟",m:"~のために"},
+// P
+{id:829,w:"pass away",p:"熟",m:"亡くなる"},
+{id:830,w:"pay attention to ~",p:"熟",m:"~に注意を払う"},
+{id:831,w:"pick up",p:"熟",m:"（人、荷物などを）拾う"},
+{id:832,w:"point out ~",p:"熟",m:"~を指摘する"},
+{id:833,w:"prefer A to B",p:"熟",m:"BよりAのほうを好む"},
+{id:834,w:"prepare for ~",p:"熟",m:"~へ準備をする・~に備える"},
+{id:835,w:"prevent ~ from ~ing",p:"熟",m:"~が~するのを妨げる"},
+{id:836,w:"provide A with B",p:"熟",m:"AにBを供給する"},
+{id:837,w:"put off",p:"熟",m:"延期する"},
+{id:838,w:"put on ~",p:"熟",m:"（~を）身につける"},
+{id:839,w:"put out ~",p:"熟",m:"（火・明かり）を消す"},
+{id:840,w:"put up with ~",p:"熟",m:"（~を）我慢する"},
+// R
+{id:841,w:"A rather than B",p:"熟",m:"BよりもむしろA"},
+{id:842,w:"refer to ~",p:"熟",m:"~に言及する・~を参照する"},
+{id:843,w:"reflect on ~",p:"熟",m:"~を熟考する"},
+{id:844,w:"refrain from ~",p:"熟",m:"~を差し控える・慎む"},
+{id:845,w:"regard A as B",p:"熟",m:"AをBとみなす"},
+{id:846,w:"regardless of ~",p:"熟",m:"~にかかわらず"},
+{id:847,w:"rely on ~",p:"熟",m:"~に頼る"},
+{id:848,w:"remind A of B",p:"熟",m:"AにBのことを思い出させる"},
+{id:849,w:"resort to ~",p:"熟",m:"~に訴える・頼る"},
+{id:850,w:"result from ~",p:"熟",m:"~に起因する"},
+{id:851,w:"result in ~",p:"熟",m:"~に終わる"},
+{id:852,w:"rob ~ of",p:"熟",m:"~から…を奪う"},
+{id:853,w:"rule out ~",p:"熟",m:"~を除外する・認めない"},
+{id:854,w:"run short of ~",p:"熟",m:"~が不足する"},
+// S
+{id:855,w:"set off for ~",p:"熟",m:"（~へ）出発する"},
+{id:856,w:"settle down",p:"熟",m:"落ち着く・定住する"},
+{id:857,w:"show up",p:"熟",m:"現われる・目立つ"},
+{id:858,w:"so as to ~",p:"熟",m:"~するために（目的）"},
+{id:859,w:"so far",p:"熟",m:"今（まで）のところ"},
+{id:860,w:"so that ~ may",p:"熟",m:"~が…できるために（目的）"},
+{id:861,w:"so to speak",p:"熟",m:"いわば"},
+{id:862,w:"speak ill of ~",p:"熟",m:"~を悪く言う"},
+{id:863,w:"stand for ~",p:"熟",m:"~を表わす"},
+{id:864,w:"succeed in ~",p:"熟",m:"~に成功する"},
+// T
+{id:865,w:"take account of ~",p:"熟",m:"~を考慮に入れる"},
+{id:866,w:"take advantage of ~",p:"熟",m:"~を利用する"},
+{id:867,w:"take after ~",p:"熟",m:"~に似ている"},
+{id:868,w:"take ~ for granted",p:"熟",m:"~を当然のことと考える"},
+{id:869,w:"take ~ into consideration",p:"熟",m:"~を考慮に入れる"},
+{id:870,w:"take off ~",p:"熟",m:"（~を）脱ぐ"},
+{id:871,w:"take over ~",p:"熟",m:"~を引き継ぐ"},
+{id:872,w:"take part in ~",p:"熟",m:"~に参加する"},
+{id:873,w:"take place",p:"熟",m:"起こる／行われる"},
+{id:874,w:"take to ~",p:"熟",m:"~が好きになる"},
+{id:875,w:"take up ~",p:"熟",m:"（場所・時間）を取る・（仕事・趣味など）始める"},
+{id:876,w:"tell A from B",p:"熟",m:"AをBと見わける"},
+{id:877,w:"tend to ~",p:"熟",m:"~する傾向がある"},
+{id:878,w:"thanks to ~",p:"熟",m:"~のおかげで"},
+{id:879,w:"that is to say",p:"熟",m:"すなわち"},
+{id:880,w:"the last ~ to that",p:"熟",m:"最も…しそうにない~"},
+{id:881,w:"think much of ~",p:"熟",m:"~のことを重視する"},
+{id:882,w:"think of A as B",p:"熟",m:"AをBだと考える"},
+{id:883,w:"to make matters worse",p:"熟",m:"さらに悪いことには"},
+{id:884,w:"to one's surprise",p:"熟",m:"（~が）驚いたことには"},
+{id:885,w:"to say nothing of ~",p:"熟",m:"~は言うまでもなく"},
+{id:886,w:"to some extent",p:"熟",m:"ある程度まで"},
+{id:887,w:"to tell the truth",p:"熟",m:"正直に言うと"},
+{id:888,w:"to the contrary",p:"熟",m:"それと反対の[に]"},
+{id:889,w:"turn down",p:"熟",m:"拒否する"},
+{id:890,w:"turn into",p:"熟",m:"（~を）…に変える（変わる）"},
+{id:891,w:"turn out",p:"熟",m:"（~であることが）判明する"},
+// U
+{id:892,w:"up to ~",p:"熟",m:"~次第で"},
+{id:893,w:"used to ~",p:"熟",m:"（以前はよく）~したものだ"},
+// W
+{id:894,w:"wear out",p:"熟",m:"（使い古して）だめになる"},
+{id:895,w:"what ~ for",p:"熟",m:"なぜ・どうして"},
+{id:896,w:"when it comes to ~",p:"熟",m:"~ということになると"},
+{id:897,w:"without fail",p:"熟",m:"必ず・間違いなく"},
+{id:898,w:"work out",p:"熟",m:"うまくいく・運動をする"},
+{id:899,w:"would rather ~ than",p:"熟",m:"（どちらかといえば）むしろ…より~したい"},
+// Y
+{id:900,w:"yield to ~",p:"熟",m:"~に屈する"}
+
 ];
 
 /* ══════════════════════════════
@@ -1040,13 +1404,25 @@ const CAT_RANGE = {
   ]
 };
 
+const CAT_IDIOM_RANGE = {
+  label:'🔢 熟語 番号範囲別',
+  items:[
+    {id:'i1', name:'熟語 No.1 〜 100',   filter: v=>v.p==='熟'&&v.id>=601&&v.id<=700},
+    {id:'i2', name:'熟語 No.101 〜 200', filter: v=>v.p==='熟'&&v.id>=701&&v.id<=800},
+    {id:'i3', name:'熟語 No.201 〜 300', filter: v=>v.p==='熟'&&v.id>=801&&v.id<=900},
+  ]
+};
+
 /* 選択肢生成: 同じ品詞からランダムに3つ選ぶ */
 function getDistractors(correct, pool) {
+  // 熟語は全熟語から引く（品詞が全部"熟"なので同品詞＝同じプールで十分）
   const samePOS = pool.filter(v => v.id !== correct.id && v.p === correct.p);
   const shuffled = samePOS.sort(() => Math.random() - 0.5);
-  // 不足時は他品詞で補う
+  // 不足時は他品詞で補う（単語モード用）
   const extras = pool.filter(v => v.id !== correct.id && v.p !== correct.p).sort(()=>Math.random()-0.5);
-  const merged = [...shuffled, ...extras];
+  // 熟語モードで不足する場合は全熟語から補充
+  const idiomExtras = correct.p==='熟' ? VOCAB.filter(v=>v.p==='熟'&&v.id!==correct.id&&!samePOS.includes(v)).sort(()=>Math.random()-0.5) : [];
+  const merged = [...shuffled, ...idiomExtras, ...extras];
   return merged.slice(0,3);
 }
 
@@ -1055,6 +1431,7 @@ function getDistractors(correct, pool) {
 ══════════════════════════════ */
 let selCatIds = new Set();
 let catMode = 'pos'; // 'pos' | 'range'
+let currentSubject = 'word'; // 'word' | 'idiom'
 let quizDir = 'en'; // 'en'=英→日, 'ja'=日→英
 let pool = [];
 let qMode = 'random';
@@ -1076,16 +1453,75 @@ const COMBO_HEAL=5, COMBO_SHIELD=10, COMBO_FEVER=15, FEVER_DURATION=10000;
 function comboMult(c){if(c<3)return 1;if(c<5)return 1.5;if(c<8)return 2;if(c<12)return 3;if(c<20)return 5;return 8;}
 function comboLabel(c){if(c<3)return'';if(c<5)return'🔥 COMBO x1.5';if(c<8)return'⚡ COMBO x2';if(c<12)return'💥 COMBO x3';if(c<20)return'🌟 COMBO x5';return'👑 MAX x8';}
 
+
+/* ══════════════════════════════
+   SPEECH SYNTHESIS (女性音声)
+══════════════════════════════ */
+let _femaleVoice = null;
+let _speakQ = [];
+let _speakBusy = false;
+
+function _initVoice(){
+  const voices = speechSynthesis.getVoices();
+  if(!voices.length) return;
+  // 優先順: en-US female → en-GB female → en female → any english
+  const pref = [
+    v => /en[-_]US/i.test(v.lang) && /female|woman|zira|samantha|karen|victoria|allison|susan|nicky/i.test(v.name),
+    v => /en[-_]GB/i.test(v.lang) && /female|woman|kate|emily|serena/i.test(v.name),
+    v => /^en/i.test(v.lang) && /female|woman|samantha|karen|victoria|allison|zira/i.test(v.name),
+    v => /^en/i.test(v.lang) && !/male|man/i.test(v.name),
+    v => /^en/i.test(v.lang),
+    v => true
+  ];
+  for(const fn of pref){
+    const found = voices.find(fn);
+    if(found){ _femaleVoice = found; break; }
+  }
+}
+speechSynthesis.onvoiceschanged = _initVoice;
+_initVoice();
+
+function speak(text){
+  if(!text || typeof text !== 'string') return;
+  // 日本語テキストは読み上げない
+  if(/[぀-ヿ一-龯]/.test(text)) return;
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.88;
+  utter.pitch = 1.15;
+  utter.volume = 1.0;
+  if(_femaleVoice) utter.voice = _femaleVoice;
+  // 発音しやすい前処理（~, 〜 などを除去）
+  const clean = text.replace(/[~〜～]/g,'').replace(/\s+/g,' ').trim();
+  utter.text = clean;
+  // 問題カードのビジュアルフィードバック
+  const tqEl = document.getElementById('tQ');
+  if(tqEl){
+    tqEl.classList.add('speaking');
+    utter.onend = () => tqEl.classList.remove('speaking');
+    utter.onerror = () => tqEl.classList.remove('speaking');
+  }
+  speechSynthesis.speak(utter);
+}
+
 /* ══════════════════════════════
    SCREEN
 ══════════════════════════════ */
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');window.scrollTo(0,0);}
 function goHome(){
-  clk(); endFever();
+  clk(); endFever(); speechSynthesis.cancel();
   document.getElementById('floatBack').classList.add('hidden');
   document.getElementById('timerOv').classList.add('hidden');
   document.getElementById('gameoverOv').classList.add('hidden');
   show('mainScreen');
+}
+function goBackToSubject(){
+  clk(); endFever();
+  document.getElementById('floatBack').classList.add('hidden');
+  document.getElementById('timerOv').classList.add('hidden');
+  document.getElementById('gameoverOv').classList.add('hidden');
+  show(currentSubject==='idiom'?'idiomScreen':'wordScreen');
 }
 
 /* ══════════════════════════════
@@ -1098,6 +1534,10 @@ function openCat(mode){
     document.getElementById('catLogo').textContent='📚 品詞別';
     document.getElementById('catLogoSub').textContent='SELECT BY PART OF SPEECH';
     document.getElementById('customRangeBox').classList.add('hidden');
+  } else if(mode==='idiom_range'){
+    document.getElementById('catLogo').textContent='💬 熟語 番号範囲別';
+    document.getElementById('catLogoSub').textContent='IDIOMS — SELECT RANGE';
+    document.getElementById('customRangeBox').classList.add('hidden');
   } else {
     document.getElementById('catLogo').textContent='🔢 番号範囲別';
     document.getElementById('catLogoSub').textContent='SELECT BY NUMBER RANGE';
@@ -1106,13 +1546,25 @@ function openCat(mode){
   renderCatGrid();
   show('catScreen');
 }
-function openAll(){
-  clk(); catMode='pos'; selCatIds.clear();
+function openSubject(subj){
+  clk(); currentSubject=subj;
+  if(subj==='word') show('wordScreen');
+  else show('idiomScreen');
+}
+function openAll(subj){
+  clk(); selCatIds.clear(); customRanges=[];
   resetCatScreenState();
-  // select all
-  CAT_POS.items.forEach(c=>selCatIds.add(c.id));
-  document.getElementById('catLogo').textContent='⚡ ALL WORDS';
-  document.getElementById('catLogoSub').textContent='600 WORDS SELECTED';
+  if(subj==='idiom'){
+    catMode='idiom_range';
+    CAT_IDIOM_RANGE.items.forEach(c=>selCatIds.add(c.id));
+    document.getElementById('catLogo').textContent='⚡ ALL IDIOMS';
+    document.getElementById('catLogoSub').textContent='300 IDIOMS SELECTED';
+  } else {
+    catMode='pos';
+    CAT_POS.items.forEach(c=>selCatIds.add(c.id));
+    document.getElementById('catLogo').textContent='⚡ ALL WORDS';
+    document.getElementById('catLogoSub').textContent='600 WORDS SELECTED';
+  }
   renderCatGrid();
   updateSelCount();
   show('catScreen');
@@ -1140,7 +1592,7 @@ function resetCatScreenState(){
 function renderCatGrid(){
   const grid=document.getElementById('catGrid');
   grid.innerHTML='';
-  const def = catMode==='pos' ? CAT_POS : CAT_RANGE;
+  const def = catMode==='pos' ? CAT_POS : catMode==='idiom_range' ? CAT_IDIOM_RANGE : CAT_RANGE;
   // すべて選択ボタン
   const allBtn=document.createElement('button');
   allBtn.className='cat-btn'+(def.items.every(c=>selCatIds.has(c.id))?' sel':'');
@@ -1175,7 +1627,7 @@ function renderCatGrid(){
 }
 
 function updateSelCount(){
-  const def=catMode==='pos'?CAT_POS:CAT_RANGE;
+  const def=catMode==='pos'?CAT_POS:catMode==='idiom_range'?CAT_IDIOM_RANGE:CAT_RANGE;
   const wordCount=[...selCatIds].reduce((acc,id)=>{
     const item=def.items.find(c=>c.id===id);
     return acc+(item?VOCAB.filter(item.filter).length:0);
@@ -1247,7 +1699,7 @@ function setDir(d){
    BUILD POOL & START
 ══════════════════════════════ */
 function buildPool(){
-  const def=catMode==='pos'?CAT_POS:CAT_RANGE;
+  const def=catMode==='pos'?CAT_POS:catMode==='idiom_range'?CAT_IDIOM_RANGE:CAT_RANGE;
   const wordSet=new Set();
   selCatIds.forEach(id=>{
     const item=def.items.find(c=>c.id===id);
@@ -1426,7 +1878,7 @@ function startTimer(){
   startSessTimer();
   showTQ();
 }
-function closeTimer(){clk();killTimer();stopSessTimer();endFever();document.getElementById('timerOv').classList.add('hidden');}
+function closeTimer(){clk();killTimer();stopSessTimer();endFever();speechSynthesis.cancel();document.getElementById('timerOv').classList.add('hidden');}
 
 function showTQ(){
   tPhase='q';
@@ -1434,8 +1886,11 @@ function showTQ(){
   document.getElementById('tPhase').textContent='❓ QUESTION';
   document.getElementById('tPhase').className='tphase qp';
   const tqEl=document.getElementById('tQ');
-  tqEl.textContent=q.q;
+  tqEl.innerHTML = q.q + '<span class="tq-speaker">🔊</span>';
   tqEl.className='tq '+(q.qClass||'');
+  tqEl.dataset.word = q.word || q.q;
+  // 英語→日本語モード（英単語・熟語が問題）は自動読み上げ
+  if(quizDir==='en') speak(q.word || q.q);
   document.getElementById('tCount').textContent=(tIdx+1)+' / '+tProbs.length;
   document.getElementById('cdNum').className='cdnum qc';
   document.getElementById('progFill').className='pfill qf';
@@ -1444,7 +1899,12 @@ function showTQ(){
   const opts=q.opts;
   const labels=['A','B','C','D'];
   const ta=document.getElementById('tAns');
-  ta.innerHTML=opts.map((opt,i)=>`<button class="topt" data-idx="${i}"><span class="topt-lbl">${labels[i]}</span>${opt}</button>`).join('');
+  ta.innerHTML=opts.map((opt,i)=>{
+    // 英語の選択肢か判定（日本語文字が含まれない）
+    const isEn = !/[\u3040-\u30ff\u4e00-\u9faf]/.test(opt);
+    const speakBtn = isEn ? `<span class="topt-speak" onclick="event.stopPropagation();speak('${opt.replace(/'/g,"\\'")}')">🔊</span>` : '';
+    return `<button class="topt" data-idx="${i}"><span class="topt-lbl">${labels[i]}</span>${opt}${speakBtn}</button>`;
+  }).join('');
   let answered=false;
   ta.querySelectorAll('.topt').forEach(btn=>{
     btn.onclick=()=>{
@@ -1458,7 +1918,15 @@ function showTQ(){
         if(b===btn&&chosen!==correctIdx)b.classList.add('opt-wrong');
       });
       if(chosen===correctIdx){onCorrect(elapsed);}else{onMiss();}
-      if(q.exp){const d=document.createElement('div');d.className='texp-inline';d.textContent='💡 '+q.exp;ta.appendChild(d);}
+      // 日→英モードの場合、正解の英語を読み上げ
+      if(quizDir==='ja' && q.word){ setTimeout(()=>speak(q.word), 200); }
+      if(q.exp){
+        const d=document.createElement('div');
+        d.className='texp-inline';
+        const isEnExp = !/[\u3040-\u30ff\u4e00-\u9faf]/.test(q.word||'');
+        d.innerHTML='💡 '+q.exp+(isEnExp?` <span class="topt-speak" onclick="speak('${(q.word||'').replace(/'/g,"\\'")}')" style="cursor:pointer;font-size:0.8rem;">🔊</span>`:'');
+        ta.appendChild(d);
+      }
       tPhase='a';
       document.getElementById('tPhase').textContent='💡 ANSWER';
       document.getElementById('tPhase').className='tphase ap';
@@ -1474,7 +1942,12 @@ function showTQ(){
 function timeUp(){
   const ta=document.getElementById('tAns');const q=tProbs[tIdx];
   ta.querySelectorAll('.topt').forEach(b=>{b.disabled=true;if(parseInt(b.dataset.idx)===q.ans)b.classList.add('opt-correct');});
-  if(q.exp){const d=document.createElement('div');d.className='texp-inline';d.textContent='💡 '+q.exp;ta.appendChild(d);}
+  if(q.exp){
+    const d=document.createElement('div');d.className='texp-inline';
+    const isEnExp2 = !/[\u3040-\u30ff\u4e00-\u9faf]/.test(q.word||'');
+    d.innerHTML='💡 '+q.exp+(isEnExp2?` <span class="topt-speak" onclick="speak('${(q.word||'').replace(/'/g,"\\'")}')" style="cursor:pointer;font-size:0.8rem;">🔊</span>`:'');
+    ta.appendChild(d);
+  }
   onMiss();
   document.getElementById('tPhase').textContent='💡 ANSWER';document.getElementById('tPhase').className='tphase ap';
   document.getElementById('cdNum').className='cdnum ac';document.getElementById('progFill').className='pfill af';
